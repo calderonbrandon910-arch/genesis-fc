@@ -132,9 +132,9 @@ export default function Home() {
 
       <div className="mt-10 flex flex-wrap gap-4">
 
-        <button className="rounded-full bg-white px-8 py-4 font-bold text-black transition hover:scale-105">
+        <a href="#club" className="rounded-full bg-white px-8 py-4 font-bold text-black transition hover:scale-105">
           CONOCE AL CLUB →
-        </button>
+        </a>
 
         <a href="#noticias" className="rounded-full border border-white/20 bg-white/5 px-8 py-4 font-bold backdrop-blur-md transition hover:bg-white/10">
           ÚLTIMAS NOTICIAS
