@@ -200,7 +200,7 @@ export default function Home() {
       </div>
 
       <a
-        href="#"
+        href="#calendario"
         className="text-sm font-black tracking-wide transition hover:text-cyan-600"
       >
         VER CALENDARIO →
@@ -321,6 +321,344 @@ export default function Home() {
   </div>
 </section>
     {/* NOTICIAS */}
+
+    {/* CALENDARIO COMPLETO */}
+<section id="calendario" className="bg-[#06152c] px-6 py-24 text-white">
+  <div className="mx-auto max-w-7xl">
+
+    <div className="mb-12">
+      <p className="text-sm font-black tracking-[0.3em] text-cyan-400">
+        LIGA NACIONAL
+      </p>
+
+      <h2 className="mt-3 text-5xl font-black">
+        CALENDARIO
+      </h2>
+
+      <p className="mt-4 text-white/60">
+        Próximos partidos de Génesis FC
+      </p>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-2">
+
+      {/* OLANCHO FC */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          SÁBADO 19 DE SEPTIEMBRE · 3:00 PM
+        </p>
+ <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">VS</span>
+
+  <img
+    src="/OlanchoFC.png"
+    alt="Olancho FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    OLANCHO FC
+  </h3>
+</div>
+    
+        <p className="mt-2 text-sm text-white/60">
+          LOCAL · LA PAZ, HONDURAS
+        </p>
+      </div>
+
+      {/* OLIMPIA */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          SÁBADO 10 DE OCTUBRE · 3:00 PM
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/olimpia.png"
+    alt="Olimpia"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    OLIMPIA
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          LOCAL · LA PAZ, HONDURAS
+        </p>
+      </div>
+
+      {/* ESTRELLA ROJA */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/estrellaroja.jpg"
+    alt="Estrella Roja"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    ESTRELLA ROJA
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          LOCAL · LA PAZ, HONDURAS
+        </p>
+      </div>
+
+      {/* UPN */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+       <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/upn.png"
+    alt="UPN"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    UPN
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          VISITANTE
+        </p>
+      </div>
+
+      {/* CHOLOMA */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/choloma.png"
+    alt="Choloma"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    CHOLOMA
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          VISITANTE
+        </p>
+      </div>
+
+      {/* REAL ESPAÑA */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/real españa.jpg"
+    alt="Real España"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    REAL ESPAÑA
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          LOCAL · LA PAZ, HONDURAS
+        </p>
+      </div>
+
+      {/* PLATENSE */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/platense.jpg"
+    alt="Platense"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    PLATENSE
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          VISITANTE
+        </p>
+      </div>
+
+      {/* ATLÉTICO INDEPENDIENTE */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+        <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/independiente.jpg"
+    alt="Atlético Independiente"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    ATLÉTICO INDEPENDIENTE
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          LOCAL · LA PAZ, HONDURAS
+        </p>
+      </div>
+
+      {/* MARATHÓN */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 md:col-span-2">
+        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
+          FECHA Y HORA POR DEFINIR
+        </p>
+       <div className="mt-4 flex items-center gap-4">
+  <img
+    src="/CDMarathon.png"
+    alt="Marathón"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    MARATHÓN
+  </h3>
+
+  <span className="text-lg font-bold text-white/50">
+    VS
+  </span>
+
+  <img
+    src="/genesisazul.jpg"
+    alt="Génesis FC"
+    className="h-16 w-16 object-contain"
+  />
+
+  <h3 className="text-2xl font-black">
+    GÉNESIS FC
+  </h3>
+</div>
+        <p className="mt-2 text-sm text-white/60">
+          VISITANTE
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
 <section id="noticias" className="bg-white px-6 py-24 text-[#06152c]">
 
   <div className="mx-auto max-w-7xl">
