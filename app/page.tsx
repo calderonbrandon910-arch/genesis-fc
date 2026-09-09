@@ -136,9 +136,9 @@ export default function Home() {
           CONOCE AL CLUB →
         </button>
 
-        <button className="rounded-full border border-white/20 bg-white/5 px-8 py-4 font-bold backdrop-blur-md transition hover:bg-white/10">
+        <a href="#noticias" className="rounded-full border border-white/20 bg-white/5 px-8 py-4 font-bold backdrop-blur-md transition hover:bg-white/10">
           ÚLTIMAS NOTICIAS
-        </button>
+        </a>
 
       </div>
 
