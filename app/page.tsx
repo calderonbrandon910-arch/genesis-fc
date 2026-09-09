@@ -347,28 +347,32 @@ export default function Home() {
         <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
           SÁBADO 19 DE SEPTIEMBRE · 3:00 PM
         </p>
- <div className="mt-4 flex items-center gap-4">
-  <img
-    src="/genesisazul.jpg"
-    alt="Génesis FC"
-    className="h-16 w-16 object-contain"
-  />
+ <div className="mt-6 flex items-center justify-center gap-8">
+  <div className="flex flex-col items-center">
+    <img
+      src="/genesisazul.jpg"
+      alt="Génesis FC"
+      className="h-24 w-24 object-contain"
+    />
+    <h3 className="mt-3 text-xl font-black">
+      GÉNESIS FC
+    </h3>
+  </div>
 
-  <h3 className="text-2xl font-black">
-    GÉNESIS FC
-  </h3>
+  <span className="text-xl font-black text-white/50">
+    VS
+  </span>
 
-  <span className="text-lg font-bold text-white/50">VS</span>
-
-  <img
-    src="/OlanchoFC.png"
-    alt="Olancho FC"
-    className="h-16 w-16 object-contain"
-  />
-
-  <h3 className="text-2xl font-black">
-    OLANCHO FC
-  </h3>
+  <div className="flex flex-col items-center">
+    <img
+      src="/OlanchoFC.png"
+      alt="Olancho FC"
+      className="h-24 w-24 object-contain"
+    />
+    <h3 className="mt-3 text-xl font-black">
+      OLANCHO FC
+    </h3>
+  </div>
 </div>
     
         <p className="mt-2 text-sm text-white/60">
@@ -713,9 +717,9 @@ export default function Home() {
           Génesis FC prepara su próximo desafío en la Liga Nacional
         </h3>
 
-        <p className="mt-5 font-bold">
-          LEER NOTICIA →
-        </p>
+        <a href="/noticias/desafio-liga" className="mt-5 font-bold">
+  LEER NOTICIA →
+</a>
 
       </div>
 
