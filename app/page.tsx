@@ -343,42 +343,50 @@ export default function Home() {
     <div className="grid gap-4 md:grid-cols-2">
 
       {/* OLANCHO FC */}
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-        <p className="text-xs font-bold tracking-[0.2em] text-cyan-400">
-          SÁBADO 19 DE SEPTIEMBRE · 3:00 PM
-        </p>
- <div className="mt-6 flex items-center justify-center gap-8">
-  <div className="flex flex-col items-center">
-    <img
-      src="/genesisazul.jpg"
-      alt="Génesis FC"
-      className="h-24 w-24 object-contain"
-    />
-    <h3 className="mt-3 text-xl font-black">
-      GÉNESIS FC
-    </h3>
+  {/* OLANCHO FC */}
+<div className="rounded-3xl border border-white/10 bg-white/5 p-5 md:p-8">
+  <p className="text-xs font-bold tracking-[0.2em] text-cyan-300 md:text-sm">
+    SÁBADO 19 DE SEPTIEMBRE · 3:00 PM
+  </p>
+
+  <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-8">
+
+    {/* GÉNESIS */}
+    <div className="flex min-w-0 flex-col items-center text-center">
+      <img
+        src="/genesisazul.jpg"
+        alt="Génesis FC"
+        className="h-16 w-16 object-contain md:h-24 md:w-24"
+      />
+
+      <h3 className="mt-3 text-base font-black leading-tight md:text-xl">
+        GÉNESIS FC
+      </h3>
+    </div>
+
+    {/* VS */}
+    <span className="text-lg font-black text-white/50 md:text-xl">
+      VS
+    </span>
+
+    {/* OLANCHO */}
+    <div className="flex min-w-0 flex-col items-center text-center">
+      <img
+        src="/escudo-olancho.png"
+        alt="Olancho FC"
+        className="h-16 w-16 object-contain md:h-24 md:w-24"
+      />
+
+      <h3 className="mt-3 text-base font-black leading-tight md:text-xl">
+        OLANCHO FC
+      </h3>
+    </div>
   </div>
 
-  <span className="text-xl font-black text-white/50">
-    VS
-  </span>
-
-  <div className="flex flex-col items-center">
-    <img
-      src="/OlanchoFC.png"
-      alt="Olancho FC"
-      className="h-24 w-24 object-contain"
-    />
-    <h3 className="mt-3 text-xl font-black">
-      OLANCHO FC
-    </h3>
-  </div>
+  <p className="mt-6 text-sm text-white/60 md:text-base">
+    LOCAL · LA PAZ, HONDURAS
+  </p>
 </div>
-    
-        <p className="mt-2 text-sm text-white/60">
-          LOCAL · LA PAZ, HONDURAS
-        </p>
-      </div>
 
       {/* OLIMPIA */}
       <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
