@@ -1514,25 +1514,39 @@ export default function Home() {
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2.5">
-                {[
-                  "Facebook",
-                  "Instagram",
-                  "TikTok",
-                ].map(
-                  (red) => (
-                    <span
-                      key={red}
-                      aria-disabled="true"
-                      className="cursor-default rounded-full border border-white/15 px-4 py-2.5 text-[7px] font-black uppercase text-white/50"
-                    >
-                      {red}
-                    </span>
-                  )
-                )}
+                <a
+                  href="https://www.facebook.com/profile.php?id=100094686128397"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Seguir a Génesis FC en Facebook"
+                  className={`rounded-full border border-white/15 px-4 py-2.5 text-[7px] font-black uppercase text-white/50 transition hover:border-cyan-300/40 hover:text-cyan-300 ${focusDark}`}
+                >
+                  Facebook
+                </a>
+
+                <a
+                  href="https://www.instagram.com/genesisfc_hnd/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Seguir a Génesis FC en Instagram"
+                  className={`rounded-full border border-white/15 px-4 py-2.5 text-[7px] font-black uppercase text-white/50 transition hover:border-cyan-300/40 hover:text-cyan-300 ${focusDark}`}
+                >
+                  Instagram
+                </a>
+
+                <a
+                  href="https://www.tiktok.com/@genesis_la_paz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Seguir a Génesis FC en TikTok"
+                  className={`rounded-full border border-white/15 px-4 py-2.5 text-[7px] font-black uppercase text-white/50 transition hover:border-cyan-300/40 hover:text-cyan-300 ${focusDark}`}
+                >
+                  TikTok
+                </a>
               </div>
 
-              <p className="mt-3 text-[6px] font-black uppercase tracking-[0.14em] text-white/20">
-                Enlaces oficiales próximamente
+              <p className="mt-3 text-[6px] font-black uppercase tracking-[0.14em] text-cyan-300/50">
+                Redes sociales oficiales
               </p>
             </div>
           </div>
