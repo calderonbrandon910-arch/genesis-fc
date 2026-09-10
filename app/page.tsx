@@ -1234,12 +1234,12 @@ export default function Home() {
               toda una afición.
             </p>
 
-            <span
-              aria-disabled="true"
-              className="mt-8 inline-flex cursor-default rounded-full bg-[#06142d] px-7 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-white"
+            <Link
+              href="/historia"
+              className={`mt-8 inline-flex rounded-full bg-[#06142d] px-7 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-white transition hover:bg-[#168cab] ${focusLight}`}
             >
-              Nuestra historia · Próximamente
-            </span>
+              Nuestra historia →
+            </Link>
           </div>
 
           <div className="relative overflow-hidden rounded-[34px] bg-[#061a3d] p-7 text-white sm:p-12 lg:min-h-[580px]">
