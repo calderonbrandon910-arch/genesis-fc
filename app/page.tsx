@@ -246,8 +246,7 @@ function CuentaRegresiva() {
           </h3>
 
           <p className="mt-4 text-xs text-white/40">
-            Motagua vs Génesis FC ·
-            7:00 PM
+            Motagua vs Génesis FC · 7:00 PM
           </p>
         </div>
       </div>
@@ -286,8 +285,7 @@ function CuentaRegresiva() {
         </p>
 
         <p className="mt-3 text-[7px] font-black uppercase tracking-[0.16em] text-white/30 sm:text-[8px]">
-          Falta para Motagua vs
-          Génesis FC
+          Falta para Motagua vs Génesis FC
         </p>
       </div>
 
@@ -337,8 +335,7 @@ function CuentaRegresiva() {
         />
 
         <p className="text-center text-[7px] font-black uppercase tracking-[0.17em] text-white/40 sm:text-[8px]">
-          12 SEP 2026 · 7:00 PM ·
-          HONDURAS
+          12 SEP 2026 · 7:00 PM · HONDURAS
         </p>
       </div>
     </div>
@@ -361,7 +358,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#020817] text-white">
-
       {/* =====================================================
           HEADER
       ===================================================== */}
@@ -528,7 +524,6 @@ export default function Home() {
             width={2400}
             height={1350}
             priority
-            unoptimized
             sizes="100vw"
             className="h-auto w-full object-contain"
           />
@@ -561,9 +556,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-6 max-w-[350px] border-l border-cyan-300/50 pl-4 text-[11px] font-medium leading-5 text-white/65">
-            Orgullo de La Paz. Una
-            ciudad, un escudo, una
-            identidad.
+            Orgullo de La Paz. Una ciudad, un escudo, una identidad.
           </p>
 
           <div className="mt-7 flex flex-col gap-2.5">
@@ -594,7 +587,6 @@ export default function Home() {
           alt="Jugadores de Génesis FC"
           fill
           priority
-          unoptimized
           sizes="100vw"
           className="object-cover object-[62%_center] lg:object-[65%_center]"
         />
@@ -632,9 +624,7 @@ export default function Home() {
             </h1>
 
             <p className="mt-9 max-w-[620px] border-l border-cyan-300/50 pl-5 text-base font-medium leading-7 text-white/70 lg:text-lg">
-              Orgullo de La Paz. Una
-              ciudad, un escudo, una
-              identidad.
+              Orgullo de La Paz. Una ciudad, un escudo, una identidad.
             </p>
 
             <div className="mt-10 flex gap-3">
@@ -691,7 +681,6 @@ export default function Home() {
                   src={noticias[0].imagen}
                   alt={noticias[0].titulo}
                   fill
-                  unoptimized
                   sizes="100vw"
                   className="object-cover"
                 />
@@ -714,9 +703,7 @@ export default function Home() {
                   </h3>
 
                   <Link
-                    href={
-                      noticias[0].enlace!
-                    }
+                    href={noticias[0].enlace!}
                     aria-label={`Leer noticia: ${noticias[0].titulo}`}
                     className={`mt-6 inline-flex rounded-full bg-white px-5 py-3 text-[8px] font-black uppercase tracking-[0.15em] text-[#06142d] ${focusDark}`}
                   >
@@ -728,9 +715,7 @@ export default function Home() {
 
             <div className="hidden lg:grid lg:grid-cols-[1.18fr_0.82fr]">
               <Link
-                href={
-                  noticias[0].enlace!
-                }
+                href={noticias[0].enlace!}
                 aria-label={`Abrir noticia: ${noticias[0].titulo}`}
                 className={`group relative min-h-[620px] overflow-hidden ${focusDark}`}
               >
@@ -738,7 +723,6 @@ export default function Home() {
                   src={noticias[0].imagen}
                   alt={noticias[0].titulo}
                   fill
-                  unoptimized
                   sizes="60vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                 />
@@ -771,18 +755,13 @@ export default function Home() {
                   </h3>
 
                   <p className="mt-6 max-w-[460px] text-sm leading-7 text-white/45">
-                    Génesis FC visita a
-                    Motagua en un duelo que
-                    promete intensidad,
-                    historia y mucho en
-                    juego.
+                    Génesis FC visita a Motagua en un duelo que promete
+                    intensidad, historia y mucho en juego.
                   </p>
                 </div>
 
                 <Link
-                  href={
-                    noticias[0].enlace!
-                  }
+                  href={noticias[0].enlace!}
                   aria-label={`Leer noticia: ${noticias[0].titulo}`}
                   className={`mt-10 w-fit rounded-full bg-white px-6 py-3.5 text-[9px] font-black uppercase tracking-[0.15em] text-[#06142d] transition hover:bg-cyan-300 ${focusDark}`}
                 >
@@ -886,8 +865,7 @@ export default function Home() {
             </h2>
 
             <p className="mt-3 text-[10px] text-white/45 sm:text-sm">
-              Sábado 12 de septiembre ·
-              7:00 PM
+              Sábado 12 de septiembre · 7:00 PM
             </p>
           </div>
 
@@ -957,8 +935,7 @@ export default function Home() {
 
             <div className="mt-8 border-t border-white/10 pt-6 text-center">
               <p className="text-[9px] text-white/35 sm:text-xs">
-                Estadio Carlos Miranda ·
-                Comayagua, Honduras
+                Estadio Carlos Miranda · Comayagua, Honduras
               </p>
 
               <div className="mt-5 inline-flex items-center gap-3 rounded-full bg-cyan-300 px-6 py-3 text-[7px] font-black uppercase tracking-[0.15em] text-[#06142d] transition group-hover:bg-white sm:text-[8px]">
@@ -1042,8 +1019,7 @@ export default function Home() {
               </div>
 
               <p className="mt-4 text-[8px] font-black uppercase tracking-[0.15em] text-cyan-300">
-                2 victorias · 1 empate ·
-                1 derrota
+                2 victorias · 1 empate · 1 derrota
               </p>
             </div>
           </div>
@@ -1079,9 +1055,7 @@ export default function Home() {
                         />
 
                         <p className="text-[7px] font-black uppercase tracking-[0.2em] text-black/40">
-                          {
-                            partido.competicion
-                          }
+                          {partido.competicion}
                         </p>
                       </div>
 
@@ -1094,9 +1068,7 @@ export default function Home() {
                       <div className="text-center">
                         <div className="relative mx-auto h-16 w-16 sm:h-20 sm:w-20">
                           <Image
-                            src={
-                              partido.logoLocal
-                            }
+                            src={partido.logoLocal}
                             alt={`Escudo de ${partido.local}`}
                             fill
                             quality={100}
@@ -1121,9 +1093,7 @@ export default function Home() {
 
                         <div className="mt-3 flex items-center gap-3">
                           <span className="text-4xl font-black tracking-[-0.08em] sm:text-5xl">
-                            {
-                              partido.golesLocal
-                            }
+                            {partido.golesLocal}
                           </span>
 
                           <span
@@ -1134,9 +1104,7 @@ export default function Home() {
                           </span>
 
                           <span className="text-4xl font-black tracking-[-0.08em] sm:text-5xl">
-                            {
-                              partido.golesVisitante
-                            }
+                            {partido.golesVisitante}
                           </span>
                         </div>
 
@@ -1158,9 +1126,7 @@ export default function Home() {
                                   : "text-[#137c99]"
                             }`}
                           >
-                            {
-                              partido.resultadoGenesis
-                            }
+                            {partido.resultadoGenesis}
                           </p>
                         </div>
                       </div>
@@ -1168,9 +1134,7 @@ export default function Home() {
                       <div className="text-center">
                         <div className="relative mx-auto h-16 w-16 sm:h-20 sm:w-20">
                           <Image
-                            src={
-                              partido.logoVisitante
-                            }
+                            src={partido.logoVisitante}
                             alt={`Escudo de ${partido.visitante}`}
                             fill
                             quality={100}
@@ -1184,9 +1148,7 @@ export default function Home() {
                         </p>
 
                         <h3 className="mx-auto mt-2 max-w-[150px] text-[10px] font-black uppercase leading-tight sm:text-sm">
-                          {
-                            partido.visitante
-                          }
+                          {partido.visitante}
                         </h3>
                       </div>
                     </div>
@@ -1267,17 +1229,10 @@ export default function Home() {
             </h2>
 
             <p className="mt-6 max-w-[620px] text-[12px] leading-6 text-black/50 sm:text-base sm:leading-8">
-              Génesis FC representa
-              pasión, identidad y
-              orgullo. Un club que
-              compite llevando consigo
-              el nombre de La Paz y el
-              sentimiento de toda una
-              afición.
+              Génesis FC representa pasión, identidad y orgullo. Un club que
+              compite llevando consigo el nombre de La Paz y el sentimiento de
+              toda una afición.
             </p>
-
-            {/* Todavía no existe una página de historia.
-                Se conserva visualmente sin crear un enlace falso. */}
 
             <span
               aria-disabled="true"
@@ -1364,7 +1319,6 @@ export default function Home() {
                       src={jugador.imagen}
                       alt={`${jugador.nombre}, jugador de Génesis FC`}
                       fill
-                      unoptimized
                       sizes="(max-width:640px) 245px,370px"
                       className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
                     />
@@ -1444,13 +1398,9 @@ export default function Home() {
               </h2>
 
               <p className="mt-6 max-w-[450px] text-[12px] leading-6 text-white/60 sm:text-base">
-                La camiseta oficial de
-                Génesis FC. Nuestra
-                identidad, nuestros
+                La camiseta oficial de Génesis FC. Nuestra identidad, nuestros
                 colores y nuestra ciudad.
               </p>
-
-              {/* La tienda todavía no tiene una ruta propia. */}
 
               <span
                 aria-disabled="true"
@@ -1465,7 +1415,6 @@ export default function Home() {
                 src="/tienda-camiseta.png"
                 alt="Camiseta oficial de Génesis FC"
                 fill
-                unoptimized
                 sizes="(max-width:1023px) 100vw,60vw"
                 className="object-cover object-top"
               />
@@ -1498,9 +1447,7 @@ export default function Home() {
               </h2>
 
               <p className="mt-3 text-[10px] leading-5 text-white/40">
-                Orgullo de La Paz.
-                Pasión, identidad y
-                fútbol hondureño.
+                Orgullo de La Paz. Pasión, identidad y fútbol hondureño.
               </p>
             </div>
 
@@ -1563,8 +1510,7 @@ export default function Home() {
               </p>
 
               <p className="mt-5 text-xs leading-6 text-white/40">
-                Sigue toda la actualidad
-                de Génesis FC.
+                Sigue toda la actualidad de Génesis FC.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2.5">
@@ -1593,8 +1539,7 @@ export default function Home() {
 
           <div className="flex flex-col justify-between gap-3 pt-6 sm:flex-row">
             <p className="text-[7px] font-black uppercase tracking-[0.16em] text-white/20">
-              © 2026 Génesis FC. Todos
-              los derechos reservados.
+              © 2026 Génesis FC. Todos los derechos reservados.
             </p>
 
             <p className="text-[7px] font-black uppercase tracking-[0.16em] text-white/20">
