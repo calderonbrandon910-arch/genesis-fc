@@ -1402,12 +1402,13 @@ export default function Home() {
                 colores y nuestra ciudad.
               </p>
 
-              <span
-                aria-disabled="true"
-                className="mt-8 w-fit cursor-default rounded-full bg-white px-7 py-4 text-[8px] font-black uppercase text-[#05142f]"
+              <Link
+                href="/tienda"
+                aria-label="Abrir Tienda Oficial de Génesis FC"
+                className={`mt-8 inline-flex w-fit items-center justify-center rounded-full bg-white px-7 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-[#05142f] transition hover:bg-cyan-200 ${focusLight}`}
               >
-                Colección · Próximamente
-              </span>
+                Entrar a la tienda →
+              </Link>
             </div>
 
             <div className="relative min-h-[420px] sm:min-h-[680px]">
