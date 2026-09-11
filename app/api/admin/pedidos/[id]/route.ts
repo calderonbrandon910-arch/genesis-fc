@@ -17,6 +17,18 @@ const ESTADOS_VALIDOS = [
 type EstadoPedido =
     (typeof ESTADOS_VALIDOS)[number];
 
+function obtenerAdministradoresPermitidos() {
+    const valor =
+        process.env.ADMIN_EMAILS ?? "";
+
+    return valor
+        .split(",")
+        .map((correo) =>
+            correo.trim().toLowerCase()
+        )
+        .filter(Boolean);
+}
+
 async function obtenerUsuarioAutenticado(
     request: NextRequest
 ) {
@@ -32,7 +44,8 @@ async function obtenerUsuarioAutenticado(
             error: NextResponse.json(
                 {
                     ok: false,
-                    error: "Sesión administrativa no encontrada.",
+                    error:
+                        "Sesión administrativa no encontrada.",
                 },
                 {
                     status: 401,
@@ -51,7 +64,8 @@ async function obtenerUsuarioAutenticado(
             error: NextResponse.json(
                 {
                     ok: false,
-                    error: "Token de sesión inválido.",
+                    error:
+                        "Token de sesión inválido.",
                 },
                 {
                     status: 401,
@@ -63,7 +77,9 @@ async function obtenerUsuarioAutenticado(
     const {
         data: { user },
         error,
-    } = await supabaseAdmin.auth.getUser(token);
+    } = await supabaseAdmin.auth.getUser(
+        token
+    );
 
     if (
         error ||
@@ -74,10 +90,69 @@ async function obtenerUsuarioAutenticado(
             error: NextResponse.json(
                 {
                     ok: false,
-                    error: "La sesión administrativa expiró o no es válida.",
+                    error:
+                        "La sesión administrativa expiró o no es válida.",
                 },
                 {
                     status: 401,
+                }
+            ),
+        };
+    }
+
+    /*
+    ============================================================
+    COMPROBAR QUE EL USUARIO SEA ADMINISTRADOR
+    ============================================================
+    */
+
+    const correo =
+        user.email
+            ?.trim()
+            .toLowerCase() ?? "";
+
+    const administradoresPermitidos =
+        obtenerAdministradoresPermitidos();
+
+    if (
+        administradoresPermitidos.length ===
+        0
+    ) {
+        console.error(
+            "ADMIN_EMAILS no está configurado."
+        );
+
+        return {
+            usuario: null,
+            error: NextResponse.json(
+                {
+                    ok: false,
+                    error:
+                        "El acceso administrativo todavía no está configurado.",
+                },
+                {
+                    status: 500,
+                }
+            ),
+        };
+    }
+
+    if (
+        !correo ||
+        !administradoresPermitidos.includes(
+            correo
+        )
+    ) {
+        return {
+            usuario: null,
+            error: NextResponse.json(
+                {
+                    ok: false,
+                    error:
+                        "Este usuario no tiene permisos administrativos.",
+                },
+                {
+                    status: 403,
                 }
             ),
         };
@@ -104,9 +179,7 @@ export async function GET(
                 request
             );
 
-        if (
-            autenticacion.error
-        ) {
+        if (autenticacion.error) {
             return autenticacion.error;
         }
 
@@ -117,7 +190,8 @@ export async function GET(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "Falta el ID del pedido.",
+                    error:
+                        "Falta el ID del pedido.",
                 },
                 {
                     status: 400,
@@ -143,7 +217,8 @@ export async function GET(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "No se pudo cargar el pedido.",
+                    error:
+                        "No se pudo cargar el pedido.",
                 },
                 {
                     status: 500,
@@ -155,7 +230,8 @@ export async function GET(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "El pedido no existe.",
+                    error:
+                        "El pedido no existe.",
                 },
                 {
                     status: 404,
@@ -183,7 +259,8 @@ export async function GET(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "No se pudieron cargar los productos del pedido.",
+                    error:
+                        "No se pudieron cargar los productos del pedido.",
                 },
                 {
                     status: 500,
@@ -198,9 +275,10 @@ export async function GET(
                 id:
                     autenticacion.usuario?.id ??
                     "",
+
                 correo:
-                    autenticacion.usuario?.email ??
-                    "",
+                    autenticacion.usuario
+                        ?.email ?? "",
             },
 
             pedido,
@@ -216,7 +294,8 @@ export async function GET(
         return NextResponse.json(
             {
                 ok: false,
-                error: "Ocurrió un error inesperado al cargar el pedido.",
+                error:
+                    "Ocurrió un error inesperado al cargar el pedido.",
             },
             {
                 status: 500,
@@ -240,9 +319,7 @@ export async function PATCH(
                 request
             );
 
-        if (
-            autenticacion.error
-        ) {
+        if (autenticacion.error) {
             return autenticacion.error;
         }
 
@@ -253,7 +330,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "Falta el ID del pedido.",
+                    error:
+                        "Falta el ID del pedido.",
                 },
                 {
                     status: 400,
@@ -274,7 +352,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "Los datos enviados no son válidos.",
+                    error:
+                        "Los datos enviados no son válidos.",
                 },
                 {
                     status: 400,
@@ -296,7 +375,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "Estado de pedido inválido.",
+                    error:
+                        "Estado de pedido inválido.",
                 },
                 {
                     status: 400,
@@ -324,7 +404,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "No se pudo verificar el pedido.",
+                    error:
+                        "No se pudo verificar el pedido.",
                 },
                 {
                     status: 500,
@@ -336,7 +417,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "El pedido no existe.",
+                    error:
+                        "El pedido no existe.",
                 },
                 {
                     status: 404,
@@ -350,9 +432,12 @@ export async function PATCH(
         ) {
             return NextResponse.json({
                 ok: true,
+
                 mensaje:
                     "El pedido ya tiene ese estado.",
-                pedido: pedidoActual,
+
+                pedido:
+                    pedidoActual,
             });
         }
 
@@ -381,7 +466,8 @@ export async function PATCH(
             return NextResponse.json(
                 {
                     ok: false,
-                    error: "No se pudo actualizar el estado del pedido.",
+                    error:
+                        "No se pudo actualizar el estado del pedido.",
                 },
                 {
                     status: 500,
@@ -407,7 +493,8 @@ export async function PATCH(
         return NextResponse.json(
             {
                 ok: false,
-                error: "Ocurrió un error inesperado al actualizar el pedido.",
+                error:
+                    "Ocurrió un error inesperado al actualizar el pedido.",
             },
             {
                 status: 500,
