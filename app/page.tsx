@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AsistenteGenesis from "./components/AsistenteGenesis";
 
 /* =========================================================
    NOTICIAS
@@ -1563,6 +1564,8 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <AsistenteGenesis />
     </main>
   );
 }
