@@ -4,289 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-/* =========================================================
-   TIPOS
-========================================================= */
-
-type Partido = {
-  jornada: number;
-  fecha: string;
-  hora: string;
-  local: string;
-  visitante: string;
-  logoLocal: string;
-  logoVisitante: string;
-  estadio: string;
-  ciudad: string;
-};
-
-type Equipo = {
-  posicion: number;
-  nombre: string;
-  logo: string;
-  pj: number;
-  g: number;
-  e: number;
-  p: number;
-  gf: number;
-  gc: number;
-};
-
-/* =========================================================
-   PARTIDOS
-========================================================= */
-
-const partidos: Partido[] = [
-  {
-    jornada: 7,
-    fecha: "12 SEP 2026",
-    hora: "7:00 PM",
-    local: "Motagua",
-    visitante: "Génesis FC",
-    logoLocal: "/motagua.png",
-    logoVisitante: "/genesis.jpg",
-    estadio: "Estadio Carlos Miranda",
-    ciudad: "Comayagua, Honduras",
-  },
-  {
-    jornada: 8,
-    fecha: "19 SEP 2026",
-    hora: "3:00 PM",
-    local: "Génesis FC",
-    visitante: "Olancho FC",
-    logoLocal: "/genesis.jpg",
-    logoVisitante: "/olancho.png",
-    estadio: "Estadio Roberto Suazo Córdova",
-    ciudad: "La Paz, Honduras",
-  },
-  {
-    jornada: 9,
-    fecha: "10 OCT 2026",
-    hora: "3:00 PM",
-    local: "Génesis FC",
-    visitante: "Olimpia",
-    logoLocal: "/genesis.jpg",
-    logoVisitante: "/olimpia.png",
-    estadio: "Estadio Roberto Suazo Córdova",
-    ciudad: "La Paz, Honduras",
-  },
-  {
-    jornada: 10,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "Génesis FC",
-    visitante: "Estrella Roja",
-    logoLocal: "/genesis.jpg",
-    logoVisitante: "/estrella-roja.jpg",
-    estadio: "Estadio Roberto Suazo Córdova",
-    ciudad: "La Paz, Honduras",
-  },
-  {
-    jornada: 11,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "UPN",
-    visitante: "Génesis FC",
-    logoLocal: "/upn.png",
-    logoVisitante: "/genesis.jpg",
-    estadio: "Por confirmar",
-    ciudad: "Honduras",
-  },
-  {
-    jornada: 12,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "CD Choloma",
-    visitante: "Génesis FC",
-    logoLocal: "/choloma.png",
-    logoVisitante: "/genesis.jpg",
-    estadio: "Por confirmar",
-    ciudad: "Honduras",
-  },
-  {
-    jornada: 13,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "Génesis FC",
-    visitante: "Real España",
-    logoLocal: "/genesis.jpg",
-    logoVisitante: "/real-espana.jpg",
-    estadio: "Estadio Roberto Suazo Córdova",
-    ciudad: "La Paz, Honduras",
-  },
-  {
-    jornada: 14,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "Platense",
-    visitante: "Génesis FC",
-    logoLocal: "/platense.jpg",
-    logoVisitante: "/genesis.jpg",
-    estadio: "Por confirmar",
-    ciudad: "Honduras",
-  },
-  {
-    jornada: 15,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "Génesis FC",
-    visitante: "Atlético Independiente",
-    logoLocal: "/genesis.jpg",
-    logoVisitante: "/independiente.png",
-    estadio: "Estadio Roberto Suazo Córdova",
-    ciudad: "La Paz, Honduras",
-  },
-  {
-    jornada: 16,
-    fecha: "POR CONFIRMAR",
-    hora: "POR CONFIRMAR",
-    local: "Marathón",
-    visitante: "Génesis FC",
-    logoLocal: "/marathon.png",
-    logoVisitante: "/genesis.jpg",
-    estadio: "Por confirmar",
-    ciudad: "Honduras",
-  },
-];
-
-/* =========================================================
-   TABLA DE POSICIONES
-========================================================= */
-
-const equipos: Equipo[] = [
-  {
-    posicion: 1,
-    nombre: "Olimpia",
-    logo: "/olimpia.png",
-    pj: 6,
-    g: 4,
-    e: 2,
-    p: 0,
-    gf: 15,
-    gc: 6,
-  },
-  {
-    posicion: 2,
-    nombre: "Marathón",
-    logo: "/marathon.png",
-    pj: 6,
-    g: 4,
-    e: 2,
-    p: 0,
-    gf: 11,
-    gc: 3,
-  },
-  {
-    posicion: 3,
-    nombre: "Real España",
-    logo: "/real-espana.jpg",
-    pj: 6,
-    g: 4,
-    e: 2,
-    p: 0,
-    gf: 11,
-    gc: 3,
-  },
-  {
-    posicion: 4,
-    nombre: "Génesis FC",
-    logo: "/genesis.jpg",
-    pj: 6,
-    g: 3,
-    e: 1,
-    p: 2,
-    gf: 10,
-    gc: 5,
-  },
-  {
-    posicion: 5,
-    nombre: "Motagua",
-    logo: "/motagua.png",
-    pj: 6,
-    g: 3,
-    e: 1,
-    p: 2,
-    gf: 10,
-    gc: 7,
-  },
-  {
-    posicion: 6,
-    nombre: "Olancho FC",
-    logo: "/olancho.png",
-    pj: 6,
-    g: 2,
-    e: 3,
-    p: 1,
-    gf: 5,
-    gc: 4,
-  },
-  {
-    posicion: 7,
-    nombre: "Estrella Roja",
-    logo: "/estrella-roja.jpg",
-    pj: 6,
-    g: 2,
-    e: 2,
-    p: 2,
-    gf: 11,
-    gc: 12,
-  },
-  {
-    posicion: 8,
-    nombre: "Atlético Independiente",
-    logo: "/independiente.png",
-    pj: 6,
-    g: 1,
-    e: 3,
-    p: 2,
-    gf: 5,
-    gc: 6,
-  },
-  {
-    posicion: 9,
-    nombre: "CD Choloma",
-    logo: "/choloma.png",
-    pj: 6,
-    g: 1,
-    e: 1,
-    p: 4,
-    gf: 4,
-    gc: 7,
-  },
-  {
-    posicion: 10,
-    nombre: "Platense",
-    logo: "/platense.jpg",
-    pj: 6,
-    g: 1,
-    e: 1,
-    p: 4,
-    gf: 4,
-    gc: 14,
-  },
-  {
-    posicion: 11,
-    nombre: "Juticalpa",
-    logo: "/juti.png",
-    pj: 6,
-    g: 1,
-    e: 0,
-    p: 5,
-    gf: 4,
-    gc: 15,
-  },
-  {
-    posicion: 12,
-    nombre: "UPN",
-    logo: "/upn.png",
-    pj: 6,
-    g: 0,
-    e: 2,
-    p: 4,
-    gf: 4,
-    gc: 12,
-  },
-];
+import {
+  equipos,
+  partidos,
+  type Equipo,
+} from "../../lib/datos-futbol";
 
 /* =========================================================
    FUNCIONES
@@ -356,7 +78,6 @@ export default function CalendarioPage() {
 
   return (
     <main className="min-h-screen bg-[#f3f3f1] text-[#06142d]">
-
       {/* =====================================================
           HEADER
       ===================================================== */}
@@ -430,8 +151,6 @@ export default function CalendarioPage() {
               Génesis FC en Liga Nacional.
             </p>
           </div>
-
-          {/* PESTAÑAS */}
 
           <div className="mt-10 inline-flex w-full rounded-[18px] border border-white/10 bg-[#020817]/45 p-1.5 backdrop-blur-md sm:w-auto sm:rounded-full">
             <button
@@ -514,9 +233,6 @@ export default function CalendarioPage() {
                   </div>
 
                   <div className="grid items-center gap-6 px-5 py-7 sm:px-7 md:grid-cols-[190px_1fr_210px] md:gap-8">
-
-                    {/* FECHA */}
-
                     <div className="text-center md:text-left">
                       <p className="text-[7px] font-black uppercase tracking-[0.18em] text-black/30">
                         {partido.fecha}
@@ -526,8 +242,6 @@ export default function CalendarioPage() {
                         {partido.hora}
                       </p>
                     </div>
-
-                    {/* EQUIPOS */}
 
                     <div className="grid grid-cols-[1fr_40px_1fr] items-center gap-2 sm:grid-cols-[1fr_60px_1fr]">
                       <div className="flex min-w-0 flex-col items-center">
@@ -569,8 +283,6 @@ export default function CalendarioPage() {
                       </div>
                     </div>
 
-                    {/* ESTADIO */}
-
                     <div className="border-t border-black/[0.06] pt-5 text-center md:border-l md:border-t-0 md:pl-7 md:pt-0 md:text-left">
                       <p className="text-[6px] font-black uppercase tracking-[0.2em] text-[#168cab]">
                         Estadio
@@ -599,9 +311,6 @@ export default function CalendarioPage() {
       {seccion === "clasificacion" && (
         <section className="px-4 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <div className="mx-auto max-w-[1400px]">
-
-            {/* CABECERA */}
-
             <div className="flex flex-col gap-5 border-b border-black/10 pb-7 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-[7px] font-black uppercase tracking-[0.25em] text-[#168cab] sm:text-[8px]">
@@ -618,8 +327,6 @@ export default function CalendarioPage() {
                 Después de 6 partidos
               </p>
             </div>
-
-            {/* TARJETA GÉNESIS */}
 
             <div className="relative mt-8 overflow-hidden rounded-[28px] bg-gradient-to-r from-[#041126] via-[#09285e] to-[#0871c9] p-6 text-white shadow-[0_25px_80px_rgba(6,20,45,0.18)] sm:p-8 lg:p-10">
               <div className="absolute -right-16 -top-20 h-[300px] w-[300px] rounded-full border border-white/10" />
@@ -661,7 +368,7 @@ export default function CalendarioPage() {
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <div className="min-w-[85px] rounded-[18px] border border-white/10 bg-white/[0.07] px-4 py-4 text-center backdrop-blur-md sm:min-w-[105px]">
                     <p className="text-3xl font-black sm:text-4xl">
-                      4º
+                      {genesis.posicion}º
                     </p>
 
                     <p className="mt-2 text-[6px] font-black uppercase tracking-[0.16em] text-white/35">
@@ -695,27 +402,27 @@ export default function CalendarioPage() {
 
               <div className="relative mt-7 flex flex-wrap gap-2 border-t border-white/10 pt-5">
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  6 PJ
+                  {genesis.pj} PJ
                 </span>
 
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  3 Victorias
+                  {genesis.g} Victorias
                 </span>
 
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  1 Empate
+                  {genesis.e} Empate
                 </span>
 
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  2 Derrotas
+                  {genesis.p} Derrotas
                 </span>
 
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  10 GF
+                  {genesis.gf} GF
                 </span>
 
                 <span className="rounded-full bg-white/[0.07] px-4 py-2 text-[7px] font-black uppercase tracking-[0.14em] text-white/55">
-                  5 GC
+                  {genesis.gc} GC
                 </span>
               </div>
             </div>
