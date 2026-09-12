@@ -1,6 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import "server-only";
+
+import {
+    NextRequest,
+    NextResponse,
+} from "next/server";
 
 import { supabaseAdmin } from "../../../../../lib/supabase/server";
+
+/* =========================================================
+   TIPOS
+========================================================= */
 
 type ContextoRuta = {
     params: Promise<{
@@ -17,69 +26,424 @@ const ESTADOS_VALIDOS = [
 type EstadoPedido =
     (typeof ESTADOS_VALIDOS)[number];
 
+type RegistroRateLimit = {
+    cantidad: number;
+    reinicio: number;
+};
+
+/* =========================================================
+   RATE LIMIT
+========================================================= */
+
+const RATE_LIMIT_MAXIMO = 60;
+
+const RATE_LIMIT_VENTANA_MS =
+    60 * 1000;
+
+const globalRateLimit =
+    globalThis as typeof globalThis & {
+        genesisAdminPedidoDetalleRateLimit?: Map<
+            string,
+            RegistroRateLimit
+        >;
+    };
+
+const rateLimitStore =
+    globalRateLimit
+        .genesisAdminPedidoDetalleRateLimit ??
+    new Map<
+        string,
+        RegistroRateLimit
+    >();
+
+globalRateLimit.genesisAdminPedidoDetalleRateLimit =
+    rateLimitStore;
+
+/* =========================================================
+   CAMPOS DE PEDIDO
+========================================================= */
+
+const CAMPOS_PEDIDO = `
+    id,
+    numero_pedido,
+    estado,
+    estado_pago,
+    metodo_pago,
+    nombre_cliente,
+    telefono,
+    correo,
+    metodo_entrega,
+    ciudad,
+    direccion,
+    punto_retiro,
+    notas,
+    latitud,
+    longitud,
+    total_articulos,
+    subtotal,
+    costo_envio,
+    total,
+    moneda,
+    creado_en
+`;
+
+/* =========================================================
+   CAMPOS DE ITEMS
+========================================================= */
+
+const CAMPOS_ITEMS = `
+    id,
+    pedido_id,
+    producto_id,
+    nombre_producto,
+    talla,
+    cantidad,
+    precio_unitario,
+    subtotal,
+    creado_en
+`;
+
+/* =========================================================
+   RESPUESTA JSON SEGURA
+========================================================= */
+
+function respuestaJson(
+    body: Record<
+        string,
+        unknown
+    >,
+    status = 200,
+    headers?: Record<
+        string,
+        string
+    >
+) {
+    return NextResponse.json(
+        body,
+        {
+            status,
+
+            headers: {
+                "Cache-Control":
+                    "no-store, no-cache, must-revalidate",
+
+                Pragma:
+                    "no-cache",
+
+                ...headers,
+            },
+        }
+    );
+}
+
+/* =========================================================
+   IP
+========================================================= */
+
+function obtenerIp(
+    request: NextRequest
+) {
+    const forwardedFor =
+        request.headers.get(
+            "x-forwarded-for"
+        );
+
+    if (forwardedFor) {
+        const primeraIp =
+            forwardedFor
+                .split(",")[0]
+                ?.trim();
+
+        if (primeraIp) {
+            return primeraIp;
+        }
+    }
+
+    const realIp =
+        request.headers.get(
+            "x-real-ip"
+        );
+
+    if (realIp) {
+        return realIp.trim();
+    }
+
+    return "ip-desconocida";
+}
+
+/* =========================================================
+   LIMPIAR RATE LIMIT
+========================================================= */
+
+function limpiarRateLimit() {
+    const ahora =
+        Date.now();
+
+    for (
+        const [
+            ip,
+            registro,
+        ] of rateLimitStore.entries()
+    ) {
+        if (
+            ahora >=
+            registro.reinicio
+        ) {
+            rateLimitStore.delete(
+                ip
+            );
+        }
+    }
+}
+
+/* =========================================================
+   COMPROBAR RATE LIMIT
+========================================================= */
+
+function comprobarRateLimit(
+    ip: string
+) {
+    const ahora =
+        Date.now();
+
+    limpiarRateLimit();
+
+    const registro =
+        rateLimitStore.get(ip);
+
+    if (
+        !registro ||
+        ahora >=
+            registro.reinicio
+    ) {
+        const nuevoRegistro:
+            RegistroRateLimit = {
+            cantidad: 1,
+
+            reinicio:
+                ahora +
+                RATE_LIMIT_VENTANA_MS,
+        };
+
+        rateLimitStore.set(
+            ip,
+            nuevoRegistro
+        );
+
+        return {
+            permitido: true,
+
+            restante:
+                RATE_LIMIT_MAXIMO -
+                1,
+
+            reinicio:
+                nuevoRegistro.reinicio,
+        };
+    }
+
+    if (
+        registro.cantidad >=
+        RATE_LIMIT_MAXIMO
+    ) {
+        return {
+            permitido: false,
+
+            restante: 0,
+
+            reinicio:
+                registro.reinicio,
+        };
+    }
+
+    registro.cantidad += 1;
+
+    rateLimitStore.set(
+        ip,
+        registro
+    );
+
+    return {
+        permitido: true,
+
+        restante:
+            RATE_LIMIT_MAXIMO -
+            registro.cantidad,
+
+        reinicio:
+            registro.reinicio,
+    };
+}
+
+/* =========================================================
+   APLICAR RATE LIMIT
+========================================================= */
+
+function aplicarRateLimit(
+    request: NextRequest
+) {
+    const ip =
+        obtenerIp(request);
+
+    const limite =
+        comprobarRateLimit(ip);
+
+    if (
+        limite.permitido
+    ) {
+        return {
+            limite,
+            error: null,
+        };
+    }
+
+    const segundosRestantes =
+        Math.max(
+            1,
+            Math.ceil(
+                (
+                    limite.reinicio -
+                    Date.now()
+                ) /
+                    1000
+            )
+        );
+
+    return {
+        limite,
+
+        error:
+            respuestaJson(
+                {
+                    ok: false,
+
+                    error:
+                        "Demasiadas solicitudes. Inténtalo nuevamente en unos segundos.",
+                },
+                429,
+                {
+                    "Retry-After":
+                        String(
+                            segundosRestantes
+                        ),
+
+                    "X-RateLimit-Limit":
+                        String(
+                            RATE_LIMIT_MAXIMO
+                        ),
+
+                    "X-RateLimit-Remaining":
+                        "0",
+                }
+            ),
+    };
+}
+
+/* =========================================================
+   ADMINISTRADORES
+========================================================= */
+
 function obtenerAdministradoresPermitidos() {
     const valor =
-        process.env.ADMIN_EMAILS ?? "";
+        process.env.ADMIN_EMAILS ??
+        "";
 
     return valor
         .split(",")
-        .map((correo) =>
-            correo.trim().toLowerCase()
+        .map(
+            (correo) =>
+                correo
+                    .trim()
+                    .toLowerCase()
         )
         .filter(Boolean);
 }
 
-async function obtenerUsuarioAutenticado(
+/* =========================================================
+   OBTENER BEARER TOKEN
+========================================================= */
+
+function obtenerBearerToken(
     request: NextRequest
 ) {
     const authorization =
-        request.headers.get("authorization");
+        request.headers.get(
+            "authorization"
+        );
 
     if (
-        !authorization ||
-        !authorization.startsWith("Bearer ")
+        !authorization
     ) {
-        return {
-            usuario: null,
-            error: NextResponse.json(
-                {
-                    ok: false,
-                    error:
-                        "Sesión administrativa no encontrada.",
-                },
-                {
-                    status: 401,
-                }
-            ),
-        };
+        return null;
     }
 
-    const token = authorization
-        .replace("Bearer ", "")
-        .trim();
+    const [
+        tipo,
+        token,
+    ] =
+        authorization.split(" ");
+
+    if (
+        tipo?.toLowerCase() !==
+            "bearer" ||
+        !token
+    ) {
+        return null;
+    }
+
+    const tokenLimpio =
+        token.trim();
+
+    if (
+        tokenLimpio.length <
+            20 ||
+        tokenLimpio.length >
+            5000
+    ) {
+        return null;
+    }
+
+    return tokenLimpio;
+}
+
+/* =========================================================
+   AUTENTICACIÓN ADMINISTRATIVA
+========================================================= */
+
+async function obtenerUsuarioAutenticado(
+    request: NextRequest
+) {
+    const token =
+        obtenerBearerToken(
+            request
+        );
 
     if (!token) {
         return {
             usuario: null,
-            error: NextResponse.json(
-                {
-                    ok: false,
-                    error:
-                        "Token de sesión inválido.",
-                },
-                {
-                    status: 401,
-                }
-            ),
+
+            error:
+                respuestaJson(
+                    {
+                        ok: false,
+
+                        error:
+                            "Acceso no autorizado.",
+                    },
+                    401
+                ),
         };
     }
 
     const {
-        data: { user },
+        data: {
+            user,
+        },
         error,
-    } = await supabaseAdmin.auth.getUser(
-        token
-    );
+    } =
+        await supabaseAdmin.auth.getUser(
+            token
+        );
 
     if (
         error ||
@@ -87,29 +451,25 @@ async function obtenerUsuarioAutenticado(
     ) {
         return {
             usuario: null,
-            error: NextResponse.json(
-                {
-                    ok: false,
-                    error:
-                        "La sesión administrativa expiró o no es válida.",
-                },
-                {
-                    status: 401,
-                }
-            ),
+
+            error:
+                respuestaJson(
+                    {
+                        ok: false,
+
+                        error:
+                            "Acceso no autorizado.",
+                    },
+                    401
+                ),
         };
     }
-
-    /*
-    ============================================================
-    COMPROBAR QUE EL USUARIO SEA ADMINISTRADOR
-    ============================================================
-    */
 
     const correo =
         user.email
             ?.trim()
-            .toLowerCase() ?? "";
+            .toLowerCase() ??
+        "";
 
     const administradoresPermitidos =
         obtenerAdministradoresPermitidos();
@@ -124,16 +484,17 @@ async function obtenerUsuarioAutenticado(
 
         return {
             usuario: null,
-            error: NextResponse.json(
-                {
-                    ok: false,
-                    error:
-                        "El acceso administrativo todavía no está configurado.",
-                },
-                {
-                    status: 500,
-                }
-            ),
+
+            error:
+                respuestaJson(
+                    {
+                        ok: false,
+
+                        error:
+                            "El servicio administrativo no está disponible.",
+                    },
+                    503
+                ),
         };
     }
 
@@ -143,18 +504,24 @@ async function obtenerUsuarioAutenticado(
             correo
         )
     ) {
+        console.warn(
+            "Intento de acceso administrativo sin permisos:",
+            user.id
+        );
+
         return {
             usuario: null,
-            error: NextResponse.json(
-                {
-                    ok: false,
-                    error:
-                        "Este usuario no tiene permisos administrativos.",
-                },
-                {
-                    status: 403,
-                }
-            ),
+
+            error:
+                respuestaJson(
+                    {
+                        ok: false,
+
+                        error:
+                            "Acceso no autorizado.",
+                    },
+                    403
+                ),
         };
     }
 
@@ -162,6 +529,35 @@ async function obtenerUsuarioAutenticado(
         usuario: user,
         error: null,
     };
+}
+
+/* =========================================================
+   VALIDAR ID
+========================================================= */
+
+function idPedidoValido(
+    id: unknown
+) {
+    if (
+        typeof id !==
+        "string"
+    ) {
+        return false;
+    }
+
+    const valor =
+        id.trim();
+
+    if (
+        valor.length < 1 ||
+        valor.length > 100
+    ) {
+        return false;
+    }
+
+    return /^[a-zA-Z0-9_-]+$/.test(
+        valor
+    );
 }
 
 /* =========================================================
@@ -174,132 +570,215 @@ export async function GET(
     contexto: ContextoRuta
 ) {
     try {
+        /* =================================================
+           RATE LIMIT
+        ================================================= */
+
+        const proteccion =
+            aplicarRateLimit(
+                request
+            );
+
+        if (
+            proteccion.error
+        ) {
+            return proteccion.error;
+        }
+
+        /* =================================================
+           AUTENTICACIÓN
+        ================================================= */
+
         const autenticacion =
             await obtenerUsuarioAutenticado(
                 request
             );
 
-        if (autenticacion.error) {
+        if (
+            autenticacion.error
+        ) {
             return autenticacion.error;
         }
 
-        const { id } =
+        /* =================================================
+           ID
+        ================================================= */
+
+        const {
+            id,
+        } =
             await contexto.params;
 
-        if (!id) {
-            return NextResponse.json(
+        if (
+            !idPedidoValido(
+                id
+            )
+        ) {
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
-                        "Falta el ID del pedido.",
+                        "El identificador del pedido no es válido.",
                 },
-                {
-                    status: 400,
-                }
+                400
             );
         }
+
+        const idLimpio =
+            id.trim();
+
+        /* =================================================
+           PEDIDO
+        ================================================= */
 
         const {
             data: pedido,
             error: errorPedido,
-        } = await supabaseAdmin
-            .from("pedidos")
-            .select("*")
-            .eq("id", id)
-            .maybeSingle();
+        } =
+            await supabaseAdmin
+                .from("pedidos")
+                .select(
+                    CAMPOS_PEDIDO
+                )
+                .eq(
+                    "id",
+                    idLimpio
+                )
+                .maybeSingle();
 
-        if (errorPedido) {
+        if (
+            errorPedido
+        ) {
             console.error(
                 "Error obteniendo pedido:",
                 errorPedido
             );
 
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "No se pudo cargar el pedido.",
                 },
-                {
-                    status: 500,
-                }
+                500
             );
         }
 
-        if (!pedido) {
-            return NextResponse.json(
+        if (
+            !pedido
+        ) {
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "El pedido no existe.",
                 },
-                {
-                    status: 404,
-                }
+                404
             );
         }
+
+        /* =================================================
+           ITEMS
+        ================================================= */
 
         const {
             data: items,
             error: errorItems,
-        } = await supabaseAdmin
-            .from("pedido_items")
-            .select("*")
-            .eq("pedido_id", id)
-            .order("creado_en", {
-                ascending: true,
-            });
+        } =
+            await supabaseAdmin
+                .from(
+                    "pedido_items"
+                )
+                .select(
+                    CAMPOS_ITEMS
+                )
+                .eq(
+                    "pedido_id",
+                    idLimpio
+                )
+                .order(
+                    "creado_en",
+                    {
+                        ascending: true,
+                    }
+                );
 
-        if (errorItems) {
+        if (
+            errorItems
+        ) {
             console.error(
                 "Error obteniendo productos del pedido:",
                 errorItems
             );
 
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "No se pudieron cargar los productos del pedido.",
                 },
-                {
-                    status: 500,
-                }
+                500
             );
         }
 
-        return NextResponse.json({
-            ok: true,
+        /* =================================================
+           RESPUESTA
+        ================================================= */
 
-            administrador: {
-                id:
-                    autenticacion.usuario?.id ??
-                    "",
+        return respuestaJson(
+            {
+                ok: true,
 
-                correo:
-                    autenticacion.usuario
-                        ?.email ?? "",
+                administrador: {
+                    id:
+                        autenticacion.usuario?.id ??
+                        "",
+
+                    correo:
+                        autenticacion.usuario
+                            ?.email ??
+                        "",
+                },
+
+                pedido,
+
+                items:
+                    items ??
+                    [],
             },
+            200,
+            {
+                "X-RateLimit-Limit":
+                    String(
+                        RATE_LIMIT_MAXIMO
+                    ),
 
-            pedido,
-
-            items: items ?? [],
-        });
+                "X-RateLimit-Remaining":
+                    String(
+                        proteccion
+                            .limite
+                            .restante
+                    ),
+            }
+        );
     } catch (error) {
         console.error(
             "Error inesperado cargando pedido:",
             error
         );
 
-        return NextResponse.json(
+        return respuestaJson(
             {
                 ok: false,
+
                 error:
                     "Ocurrió un error inesperado al cargar el pedido.",
             },
-            {
-                status: 500,
-            }
+            500
         );
     }
 }
@@ -314,29 +793,97 @@ export async function PATCH(
     contexto: ContextoRuta
 ) {
     try {
+        /* =================================================
+           RATE LIMIT
+        ================================================= */
+
+        const proteccion =
+            aplicarRateLimit(
+                request
+            );
+
+        if (
+            proteccion.error
+        ) {
+            return proteccion.error;
+        }
+
+        /* =================================================
+           AUTENTICACIÓN
+        ================================================= */
+
         const autenticacion =
             await obtenerUsuarioAutenticado(
                 request
             );
 
-        if (autenticacion.error) {
+        if (
+            autenticacion.error
+        ) {
             return autenticacion.error;
         }
 
-        const { id } =
+        /* =================================================
+           ID
+        ================================================= */
+
+        const {
+            id,
+        } =
             await contexto.params;
 
-        if (!id) {
-            return NextResponse.json(
+        if (
+            !idPedidoValido(
+                id
+            )
+        ) {
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
-                        "Falta el ID del pedido.",
+                        "El identificador del pedido no es válido.",
                 },
-                {
-                    status: 400,
-                }
+                400
             );
+        }
+
+        const idLimpio =
+            id.trim();
+
+        /* =================================================
+           BODY
+        ================================================= */
+
+        const contentLength =
+            request.headers.get(
+                "content-length"
+            );
+
+        if (
+            contentLength
+        ) {
+            const bytes =
+                Number(
+                    contentLength
+                );
+
+            if (
+                Number.isFinite(
+                    bytes
+                ) &&
+                bytes > 10_000
+            ) {
+                return respuestaJson(
+                    {
+                        ok: false,
+
+                        error:
+                            "La solicitud es demasiado grande.",
+                    },
+                    413
+                );
+            }
         }
 
         let body: {
@@ -349,22 +896,28 @@ export async function PATCH(
                     estado?: string;
                 };
         } catch {
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "Los datos enviados no son válidos.",
                 },
-                {
-                    status: 400,
-                }
+                400
             );
         }
 
+        /* =================================================
+           ESTADO
+        ================================================= */
+
         const estadoSolicitado =
-            body.estado
-                ?.trim()
-                .toLowerCase();
+            typeof body.estado ===
+                "string"
+                ? body.estado
+                      .trim()
+                      .toLowerCase()
+                : "";
 
         if (
             !estadoSolicitado ||
@@ -372,87 +925,126 @@ export async function PATCH(
                 estadoSolicitado as EstadoPedido
             )
         ) {
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "Estado de pedido inválido.",
                 },
-                {
-                    status: 400,
-                }
+                400
             );
         }
+
+        /* =================================================
+           PEDIDO ACTUAL
+        ================================================= */
 
         const {
             data: pedidoActual,
             error: errorBusqueda,
-        } = await supabaseAdmin
-            .from("pedidos")
-            .select(
-                "id, numero_pedido, estado"
-            )
-            .eq("id", id)
-            .maybeSingle();
+        } =
+            await supabaseAdmin
+                .from("pedidos")
+                .select(
+                    "id, numero_pedido, estado"
+                )
+                .eq(
+                    "id",
+                    idLimpio
+                )
+                .maybeSingle();
 
-        if (errorBusqueda) {
+        if (
+            errorBusqueda
+        ) {
             console.error(
                 "Error buscando pedido:",
                 errorBusqueda
             );
 
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "No se pudo verificar el pedido.",
                 },
-                {
-                    status: 500,
-                }
+                500
             );
         }
 
-        if (!pedidoActual) {
-            return NextResponse.json(
+        if (
+            !pedidoActual
+        ) {
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "El pedido no existe.",
                 },
-                {
-                    status: 404,
-                }
+                404
             );
         }
+
+        /* =================================================
+           YA TIENE ESE ESTADO
+        ================================================= */
 
         if (
             pedidoActual.estado ===
             estadoSolicitado
         ) {
-            return NextResponse.json({
-                ok: true,
+            return respuestaJson(
+                {
+                    ok: true,
 
-                mensaje:
-                    "El pedido ya tiene ese estado.",
+                    mensaje:
+                        "El pedido ya tiene ese estado.",
 
-                pedido:
-                    pedidoActual,
-            });
+                    pedido:
+                        pedidoActual,
+                },
+                200,
+                {
+                    "X-RateLimit-Limit":
+                        String(
+                            RATE_LIMIT_MAXIMO
+                        ),
+
+                    "X-RateLimit-Remaining":
+                        String(
+                            proteccion
+                                .limite
+                                .restante
+                        ),
+                }
+            );
         }
+
+        /* =================================================
+           ACTUALIZAR
+        ================================================= */
 
         const {
             data: pedidoActualizado,
             error: errorActualizacion,
-        } = await supabaseAdmin
-            .from("pedidos")
-            .update({
-                estado:
-                    estadoSolicitado,
-            })
-            .eq("id", id)
-            .select("*")
-            .single();
+        } =
+            await supabaseAdmin
+                .from("pedidos")
+                .update({
+                    estado:
+                        estadoSolicitado,
+                })
+                .eq(
+                    "id",
+                    idLimpio
+                )
+                .select(
+                    CAMPOS_PEDIDO
+                )
+                .single();
 
         if (
             errorActualizacion ||
@@ -463,42 +1055,60 @@ export async function PATCH(
                 errorActualizacion
             );
 
-            return NextResponse.json(
+            return respuestaJson(
                 {
                     ok: false,
+
                     error:
                         "No se pudo actualizar el estado del pedido.",
                 },
-                {
-                    status: 500,
-                }
+                500
             );
         }
 
-        return NextResponse.json({
-            ok: true,
+        /* =================================================
+           RESPUESTA
+        ================================================= */
 
-            mensaje:
-                "Estado actualizado correctamente.",
+        return respuestaJson(
+            {
+                ok: true,
 
-            pedido:
-                pedidoActualizado,
-        });
+                mensaje:
+                    "Estado actualizado correctamente.",
+
+                pedido:
+                    pedidoActualizado,
+            },
+            200,
+            {
+                "X-RateLimit-Limit":
+                    String(
+                        RATE_LIMIT_MAXIMO
+                    ),
+
+                "X-RateLimit-Remaining":
+                    String(
+                        proteccion
+                            .limite
+                            .restante
+                    ),
+            }
+        );
     } catch (error) {
         console.error(
             "Error inesperado actualizando pedido:",
             error
         );
 
-        return NextResponse.json(
+        return respuestaJson(
             {
                 ok: false,
+
                 error:
                     "Ocurrió un error inesperado al actualizar el pedido.",
             },
-            {
-                status: 500,
-            }
+            500
         );
     }
 }

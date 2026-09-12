@@ -2,16 +2,62 @@ import Image from "next/image";
 import Link from "next/link";
 import CartLink from "./CartLink";
 
+import {
+    productosTienda,
+    puntosVenta,
+} from "../../lib/datos-tienda";
+
+/* =========================================================
+   PRODUCTOS
+========================================================= */
+
+const jerseyBlanco = productosTienda.find(
+    (producto) => producto.id === "jersey-blanco"
+)!;
+
+const jerseyAzul = productosTienda.find(
+    (producto) => producto.id === "jersey-azul"
+)!;
+
+const jerseyVisitante = productosTienda.find(
+    (producto) => producto.id === "jersey-visitante"
+)!;
+
+/* =========================================================
+   PUNTOS DE VENTA
+========================================================= */
+
+const k9Store = puntosVenta.find(
+    (punto) => punto.nombre === "K9 Store"
+)!;
+
+const suutuk = puntosVenta.find(
+    (punto) => punto.nombre === "Suutuk"
+)!;
+
+const genesisShop = puntosVenta.find(
+    (punto) => punto.nombre === "Génesis FC Shop"
+)!;
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
 export default function TiendaPage() {
     return (
         <main className="overflow-hidden bg-[#f7f7f5] text-[#0b1f43]">
-            {/* HERO EDITORIAL */}
+            {/* =====================================================
+                HERO EDITORIAL
+            ===================================================== */}
+
             <section className="bg-[#f7f7f5] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[0.82fr_1.18fr]">
                         {/* TEXTO */}
+
                         <div className="flex min-h-[760px] flex-col justify-between px-7 py-10 sm:px-10 sm:py-12 lg:min-h-[820px] lg:px-14 lg:py-16 xl:px-20">
                             {/* CABECERA INTERNA */}
+
                             <div className="flex items-start justify-between gap-5">
                                 <div className="flex items-center gap-4">
                                     <Image
@@ -50,9 +96,11 @@ export default function TiendaPage() {
 
                                 <h1 className="max-w-3xl text-[54px] font-black uppercase leading-[0.86] tracking-[-0.06em] text-[#0b1f43] sm:text-[72px] lg:text-[78px] xl:text-[96px]">
                                     Viste
+
                                     <span className="block text-[#158bd2]">
                                         nuestros
                                     </span>
+
                                     colores.
                                 </h1>
 
@@ -67,6 +115,7 @@ export default function TiendaPage() {
                                         className="inline-flex items-center gap-4 bg-[#0b1f43] px-7 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-[#158bd2]"
                                     >
                                         Ver colección
+
                                         <span>→</span>
                                     </a>
 
@@ -91,6 +140,7 @@ export default function TiendaPage() {
                         </div>
 
                         {/* FOTO HERO */}
+
                         <div className="relative min-h-[620px] overflow-hidden bg-white lg:min-h-[820px]">
                             <Image
                                 src="/tienda-coleccion.jpg"
@@ -117,7 +167,10 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* BANDA */}
+            {/* =====================================================
+                BANDA
+            ===================================================== */}
+
             <section className="border-y border-[#0b1f43]/10 bg-white">
                 <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-center gap-x-10 gap-y-4 px-6 py-5 text-[9px] font-black uppercase tracking-[0.28em] text-[#0b1f43]/45 sm:justify-between">
                     <span>Génesis FC</span>
@@ -127,7 +180,10 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* INTRO COLECCIÓN */}
+            {/* =====================================================
+                INTRO COLECCIÓN
+            ===================================================== */}
+
             <section
                 id="coleccion"
                 className="bg-[#f7f7f5] px-5 pb-14 pt-20 sm:px-8 lg:px-10 lg:pb-16 lg:pt-28"
@@ -141,6 +197,7 @@ export default function TiendaPage() {
 
                             <h2 className="text-5xl font-black uppercase leading-[0.88] tracking-[-0.05em] text-[#0b1f43] sm:text-6xl lg:text-7xl">
                                 Elige
+
                                 <span className="block text-[#158bd2]">
                                     tus colores.
                                 </span>
@@ -155,16 +212,19 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* JERSEY BLANCO */}
+            {/* =====================================================
+                JERSEY BLANCO
+            ===================================================== */}
+
             <section className="bg-[#f7f7f5] px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[1.18fr_0.82fr]">
                         <Link
-                            href="/tienda/jersey-blanco"
+                            href={jerseyBlanco.enlace}
                             className="group relative min-h-[650px] overflow-hidden bg-[#e8edf2] lg:min-h-[820px]"
                         >
                             <Image
-                                src="/tienda-hero.jpg"
+                                src={jerseyBlanco.imagen}
                                 alt="Modelo usando el uniforme alternativo de Génesis FC"
                                 fill
                                 sizes="(max-width: 1024px) 100vw, 60vw"
@@ -188,26 +248,24 @@ export default function TiendaPage() {
                                     </p>
 
                                     <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#0b1f43]/35">
-                                        Alternativa
+                                        {jerseyBlanco.tipo}
                                     </span>
                                 </div>
 
                                 <h3 className="mt-12 text-5xl font-black uppercase leading-[0.88] tracking-[-0.055em] text-[#0b1f43] sm:text-6xl">
                                     Jersey
+
                                     <span className="block text-[#158bd2]">
                                         Blanco
                                     </span>
                                 </h3>
 
                                 <p className="mt-5 text-2xl font-black">
-                                    L 1,300
+                                    {jerseyBlanco.precioTexto}
                                 </p>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
-                                    Base blanca, líneas verticales azules y
-                                    detalles contrastantes en cuello y mangas.
-                                    Una versión elegante de la identidad de
-                                    Génesis FC.
+                                    {jerseyBlanco.descripcion}
                                 </p>
 
                                 <div className="mt-12 border-y border-[#0b1f43]/10">
@@ -217,7 +275,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            Blanco / Azul
+                                            {jerseyBlanco.color}
                                         </p>
                                     </div>
 
@@ -227,7 +285,12 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            S — 2XL
+                                            {jerseyBlanco.tallas[0]} —{" "}
+                                            {
+                                                jerseyBlanco.tallas[
+                                                    jerseyBlanco.tallas.length - 1
+                                                ]
+                                            }
                                         </p>
                                     </div>
 
@@ -237,7 +300,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            Alternativo
+                                            {jerseyBlanco.tipo}
                                         </p>
                                     </div>
                                 </div>
@@ -245,7 +308,7 @@ export default function TiendaPage() {
 
                             <div className="mt-14">
                                 <Link
-                                    href="/tienda/jersey-blanco"
+                                    href={jerseyBlanco.enlace}
                                     className="group inline-flex w-full items-center justify-between bg-[#0b1f43] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-[#158bd2]"
                                 >
                                     Ver producto
@@ -260,7 +323,10 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* JERSEY AZUL */}
+            {/* =====================================================
+                JERSEY AZUL
+            ===================================================== */}
+
             <section className="bg-[#f7f7f5] px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[0.82fr_1.18fr]">
@@ -272,26 +338,24 @@ export default function TiendaPage() {
                                     </p>
 
                                     <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#0b1f43]/35">
-                                        Local
+                                        {jerseyAzul.tipo}
                                     </span>
                                 </div>
 
                                 <h3 className="mt-12 text-5xl font-black uppercase leading-[0.88] tracking-[-0.055em] text-[#0b1f43] sm:text-6xl">
                                     Jersey
+
                                     <span className="block text-[#158bd2]">
                                         Azul
                                     </span>
                                 </h3>
 
                                 <p className="mt-5 text-2xl font-black">
-                                    L 1,300
+                                    {jerseyAzul.precioTexto}
                                 </p>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
-                                    El uniforme local de Génesis FC. Azul como
-                                    protagonista, detalles oficiales del club y
-                                    una identidad creada para representar
-                                    nuestros colores.
+                                    {jerseyAzul.descripcion}
                                 </p>
 
                                 <div className="mt-12 border-y border-[#0b1f43]/10">
@@ -301,7 +365,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            Azul
+                                            {jerseyAzul.color}
                                         </p>
                                     </div>
 
@@ -311,7 +375,12 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            S — 2XL
+                                            {jerseyAzul.tallas[0]} —{" "}
+                                            {
+                                                jerseyAzul.tallas[
+                                                    jerseyAzul.tallas.length - 1
+                                                ]
+                                            }
                                         </p>
                                     </div>
 
@@ -321,7 +390,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            Local
+                                            {jerseyAzul.tipo}
                                         </p>
                                     </div>
                                 </div>
@@ -329,7 +398,7 @@ export default function TiendaPage() {
 
                             <div className="mt-14">
                                 <Link
-                                    href="/tienda/jersey-azul"
+                                    href={jerseyAzul.enlace}
                                     className="group inline-flex w-full items-center justify-between bg-[#0b1f43] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-[#158bd2]"
                                 >
                                     Ver producto
@@ -342,11 +411,11 @@ export default function TiendaPage() {
                         </div>
 
                         <Link
-                            href="/tienda/jersey-azul"
+                            href={jerseyAzul.enlace}
                             className="group relative order-1 min-h-[650px] overflow-hidden bg-[#dbeaf3] lg:order-2 lg:min-h-[820px]"
                         >
                             <Image
-                                src="/jersey-azul-principal.png"
+                                src={jerseyAzul.imagen}
                                 alt="Uniforme local azul de Génesis FC"
                                 fill
                                 sizes="(max-width: 1024px) 100vw, 60vw"
@@ -365,16 +434,19 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* JERSEY VISITANTE */}
+            {/* =====================================================
+                JERSEY VISITANTE
+            ===================================================== */}
+
             <section className="bg-[#f7f7f5] px-5 pb-20 sm:px-8 lg:px-10 lg:pb-28">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[1.18fr_0.82fr]">
                         <Link
-                            href="/tienda/jersey-visitante"
+                            href={jerseyVisitante.enlace}
                             className="group relative min-h-[650px] overflow-hidden bg-[#edf2f5] lg:min-h-[820px]"
                         >
                             <Image
-                                src="/jersey-visitante-portada.png"
+                                src={jerseyVisitante.imagen}
                                 alt="Modelo usando el uniforme visitante de Génesis FC"
                                 fill
                                 sizes="(max-width: 1024px) 100vw, 60vw"
@@ -398,25 +470,24 @@ export default function TiendaPage() {
                                     </p>
 
                                     <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#0b1f43]/35">
-                                        Visitante
+                                        {jerseyVisitante.tipo}
                                     </span>
                                 </div>
 
                                 <h3 className="mt-12 text-5xl font-black uppercase leading-[0.88] tracking-[-0.055em] text-[#0b1f43] sm:text-6xl">
                                     Jersey
+
                                     <span className="block text-[#158bd2]">
                                         Visitante
                                     </span>
                                 </h3>
 
                                 <p className="mt-5 text-2xl font-black">
-                                    L 1,300
+                                    {jerseyVisitante.precioTexto}
                                 </p>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
-                                    El uniforme visitante oficial de Génesis FC.
-                                    Una propuesta diseñada para mantener nuestra
-                                    identidad en cada cancha y en cada ciudad.
+                                    {jerseyVisitante.descripcion}
                                 </p>
 
                                 <div className="mt-12 border-y border-[#0b1f43]/10">
@@ -426,7 +497,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            2026
+                                            {jerseyVisitante.coleccion}
                                         </p>
                                     </div>
 
@@ -436,7 +507,12 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            S — 2XL
+                                            {jerseyVisitante.tallas[0]} —{" "}
+                                            {
+                                                jerseyVisitante.tallas[
+                                                    jerseyVisitante.tallas.length - 1
+                                                ]
+                                            }
                                         </p>
                                     </div>
 
@@ -446,7 +522,7 @@ export default function TiendaPage() {
                                         </p>
 
                                         <p className="text-right text-[11px] font-black uppercase tracking-[0.08em]">
-                                            Visitante
+                                            {jerseyVisitante.tipo}
                                         </p>
                                     </div>
                                 </div>
@@ -454,7 +530,7 @@ export default function TiendaPage() {
 
                             <div className="mt-14">
                                 <Link
-                                    href="/tienda/jersey-visitante"
+                                    href={jerseyVisitante.enlace}
                                     className="group inline-flex w-full items-center justify-between bg-[#0b1f43] px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white transition duration-300 hover:bg-[#158bd2]"
                                 >
                                     Ver producto
@@ -469,7 +545,10 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* DÓNDE COMPRAR */}
+            {/* =====================================================
+                DÓNDE COMPRAR
+            ===================================================== */}
+
             <section
                 id="comprar"
                 className="bg-white px-5 py-20 sm:px-8 lg:px-10 lg:py-28"
@@ -483,6 +562,7 @@ export default function TiendaPage() {
 
                             <h2 className="mt-5 text-5xl font-black uppercase leading-[0.9] tracking-[-0.05em] text-[#0b1f43] sm:text-6xl">
                                 Encuentra
+
                                 <span className="block text-[#158bd2]">
                                     tu jersey.
                                 </span>
@@ -495,14 +575,16 @@ export default function TiendaPage() {
                         </div>
 
                         <div className="border-t border-[#0b1f43]/10">
+                            {/* K9 STORE */}
+
                             <div className="grid gap-4 border-b border-[#0b1f43]/10 py-7 sm:grid-cols-[1fr_auto] sm:items-center">
                                 <div>
                                     <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#158bd2]">
-                                        La Paz
+                                        {k9Store.ciudad}
                                     </p>
 
                                     <h3 className="mt-2 text-2xl font-black uppercase tracking-tight">
-                                        K9 Store
+                                        {k9Store.nombre}
                                     </h3>
                                 </div>
 
@@ -511,14 +593,16 @@ export default function TiendaPage() {
                                 </span>
                             </div>
 
+                            {/* SUUTUK */}
+
                             <div className="grid gap-4 border-b border-[#0b1f43]/10 py-7 sm:grid-cols-[1fr_auto] sm:items-center">
                                 <div>
                                     <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#158bd2]">
-                                        Tegucigalpa
+                                        {suutuk.ciudad}
                                     </p>
 
                                     <h3 className="mt-2 text-2xl font-black uppercase tracking-tight">
-                                        Suutuk
+                                        {suutuk.nombre}
                                     </h3>
                                 </div>
 
@@ -526,15 +610,17 @@ export default function TiendaPage() {
                                     →
                                 </span>
                             </div>
+
+                            {/* ONLINE */}
 
                             <div className="grid gap-4 py-7 sm:grid-cols-[1fr_auto] sm:items-center">
                                 <div>
                                     <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#158bd2]">
-                                        Online
+                                        {genesisShop.ciudad}
                                     </p>
 
                                     <h3 className="mt-2 text-2xl font-black uppercase tracking-tight">
-                                        Génesis FC Shop
+                                        {genesisShop.nombre}
                                     </h3>
 
                                     <p className="mt-2 text-xs text-[#0b1f43]/40">
@@ -555,7 +641,10 @@ export default function TiendaPage() {
                 </div>
             </section>
 
-            {/* CIERRE */}
+            {/* =====================================================
+                CIERRE
+            ===================================================== */}
+
             <section className="bg-[#f7f7f5] px-5 pb-5 sm:px-8 lg:px-10">
                 <div className="mx-auto max-w-[1600px] bg-[#0b1f43] px-7 py-16 text-white sm:px-10 lg:px-16 lg:py-20">
                     <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -566,6 +655,7 @@ export default function TiendaPage() {
 
                             <h2 className="mt-5 max-w-4xl text-4xl font-black uppercase leading-[0.9] tracking-[-0.045em] sm:text-6xl">
                                 La identidad
+
                                 <span className="block text-[#5cc8ff]">
                                     también se viste.
                                 </span>
@@ -578,6 +668,7 @@ export default function TiendaPage() {
                                 className="inline-flex items-center gap-4 bg-white px-6 py-4 text-[9px] font-black uppercase tracking-[0.22em] text-[#0b1f43] transition hover:bg-[#5cc8ff]"
                             >
                                 Ver carrito
+
                                 <span>→</span>
                             </Link>
 
@@ -586,6 +677,7 @@ export default function TiendaPage() {
                                 className="inline-flex items-center gap-4 border border-[#5cc8ff]/40 bg-[#5cc8ff]/10 px-6 py-4 text-[9px] font-black uppercase tracking-[0.22em] text-[#5cc8ff] transition hover:bg-[#5cc8ff] hover:text-[#0b1f43]"
                             >
                                 Seguir mi pedido
+
                                 <span>→</span>
                             </Link>
 
@@ -594,6 +686,7 @@ export default function TiendaPage() {
                                 className="inline-flex items-center gap-4 border border-white/20 px-6 py-4 text-[9px] font-black uppercase tracking-[0.22em] transition hover:bg-white hover:text-[#0b1f43]"
                             >
                                 Volver al inicio
+
                                 <span>→</span>
                             </Link>
                         </div>

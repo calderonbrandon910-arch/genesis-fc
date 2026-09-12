@@ -1,13 +1,34 @@
 import type { MetadataRoute } from "next";
 
-export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-    },
+/* =========================================================
+   ROBOTS.TXT — GÉNESIS FC
+========================================================= */
 
-    sitemap: "https://www.genesisfc.app/sitemap.xml",
-    host: "https://www.genesisfc.app",
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl =
+    "https://www.genesisfc.app";
+
+  return {
+    rules: [
+      {
+        userAgent: "*",
+
+        allow: "/",
+
+        disallow: [
+          "/admin/",
+          "/api/",
+          "/tienda/carrito",
+          "/tienda/checkout",
+          "/tienda/seguimiento",
+        ],
+      },
+    ],
+
+    sitemap:
+      `${baseUrl}/sitemap.xml`,
+
+    host:
+      baseUrl,
   };
 }

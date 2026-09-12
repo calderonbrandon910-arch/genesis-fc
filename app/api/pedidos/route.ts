@@ -1,13 +1,28 @@
+import "server-only";
+
 import { randomUUID } from "crypto";
-import { NextRequest, NextResponse } from "next/server";
+import {
+    NextRequest,
+    NextResponse,
+} from "next/server";
 
 import { supabaseAdmin } from "../../../lib/supabase/server";
 import { obtenerTarifaEnvio } from "../../../lib/tienda/envios";
 
-type MetodoEntrega = "envio" | "recoger";
+import {
+    productosTienda,
+    puntosVenta,
+} from "../../../lib/datos-tienda";
+
+/* =========================================================
+   TIPOS
+========================================================= */
+
+type MetodoEntrega =
+    | "envio"
+    | "recoger";
 
 type MetodoPago =
-    | "tarjeta"
     | "transferencia"
     | "contraentrega";
 
@@ -21,69 +36,316 @@ type ClienteEntrada = {
     nombre: string;
     telefono: string;
     correo: string;
-    metodoEntrega: MetodoEntrega;
+
+    metodoEntrega:
+        MetodoEntrega;
+
     ciudad: string;
     direccion: string;
     puntoRetiro: string;
     notas: string;
+
     latitud?: number | null;
     longitud?: number | null;
 };
 
 type PedidoEntrada = {
     cliente: ClienteEntrada;
-    productos: ProductoEntrada[];
+
+    productos:
+        ProductoEntrada[];
+
     metodoPago?: MetodoPago;
+
     idempotencyKey?: string;
 };
 
 type PedidoAtomicoRespuesta = {
     id: string;
+
     numero_pedido: string;
+
     estado: string;
+
     estado_pago: string;
+
     total_articulos: number;
+
     subtotal: number;
-    costo_envio: number | null;
+
+    costo_envio:
+        | number
+        | null;
+
     total: number;
+
     moneda: string;
+
     creado_en: string;
+
     reutilizado: boolean;
 };
 
-const PRODUCTOS = {
-    "jersey-blanco": {
-        nombre: "Jersey Blanco",
-        precio: 1300,
-    },
-    "jersey-azul": {
-        nombre: "Jersey Azul",
-        precio: 1300,
-    },
-    "jersey-visitante": {
-        nombre: "Jersey Visitante",
-        precio: 1300,
-    },
-} as const;
+type RegistroRateLimit = {
+    cantidad: number;
+    reinicio: number;
+};
 
-const TALLAS_VALIDAS = [
-    "S",
-    "M",
-    "L",
-    "XL",
-    "2XL",
-];
+/* =========================================================
+   CONFIGURACIÓN DE SEGURIDAD
+========================================================= */
 
-const PUNTOS_RETIRO_VALIDOS = [
-    "K9 Store - La Paz",
-    "Suutuk - Tegucigalpa",
-];
+/*
+   Este límite aplica únicamente a la creación
+   de pedidos.
 
-const METODOS_PAGO_VALIDOS: MetodoPago[] = [
-    "tarjeta",
-    "transferencia",
-    "contraentrega",
-];
+   Un visitante puede intentar crear como máximo
+   5 pedidos dentro de una ventana de 10 minutos
+   desde la misma IP.
+
+   IMPORTANTE:
+   Esta es una primera barrera por instancia.
+   Más adelante podremos migrarla a un sistema
+   distribuido si fuese necesario.
+*/
+
+const RATE_LIMIT_MAXIMO = 5;
+
+const RATE_LIMIT_VENTANA_MS =
+    10 * 60 * 1000;
+
+/* =========================================================
+   ALMACÉN DE RATE LIMIT
+========================================================= */
+
+const globalRateLimit =
+    globalThis as typeof globalThis & {
+        genesisPedidosRateLimit?: Map<
+            string,
+            RegistroRateLimit
+        >;
+    };
+
+const rateLimitStore =
+    globalRateLimit
+        .genesisPedidosRateLimit ??
+    new Map<
+        string,
+        RegistroRateLimit
+    >();
+
+globalRateLimit.genesisPedidosRateLimit =
+    rateLimitStore;
+
+/* =========================================================
+   PRODUCTOS OFICIALES
+
+   La API ya NO mantiene una segunda lista manual
+   de productos o precios.
+
+   La fuente oficial es:
+   lib/datos-tienda.ts
+========================================================= */
+
+const PRODUCTOS =
+    Object.fromEntries(
+        productosTienda.map(
+            (producto) => [
+                producto.id,
+                {
+                    nombre:
+                        producto.nombre,
+
+                    precio:
+                        producto.precio,
+
+                    tallas:
+                        producto.tallas,
+                },
+            ]
+        )
+    ) as Record<
+        string,
+        {
+            nombre: string;
+            precio: number;
+            tallas: string[];
+        }
+    >;
+
+/* =========================================================
+   PUNTOS DE RETIRO OFICIALES
+========================================================= */
+
+const PUNTOS_RETIRO_VALIDOS =
+    puntosVenta
+        .filter(
+            (punto) =>
+                punto.tipo ===
+                "Físico"
+        )
+        .map(
+            (punto) =>
+                `${punto.nombre} - ${punto.ciudad}`
+        );
+
+/* =========================================================
+   MÉTODOS DE PAGO PERMITIDOS
+
+   TARJETA NO ESTÁ HABILITADA ACTUALMENTE.
+
+   Aunque alguien intente saltarse el frontend,
+   la API rechazará "tarjeta".
+========================================================= */
+
+const METODOS_PAGO_VALIDOS:
+    MetodoPago[] = [
+        "transferencia",
+        "contraentrega",
+    ];
+
+/* =========================================================
+   OBTENER IP
+========================================================= */
+
+function obtenerIp(
+    request: NextRequest
+) {
+    const forwardedFor =
+        request.headers.get(
+            "x-forwarded-for"
+        );
+
+    if (forwardedFor) {
+        const primeraIp =
+            forwardedFor
+                .split(",")[0]
+                ?.trim();
+
+        if (primeraIp) {
+            return primeraIp;
+        }
+    }
+
+    const realIp =
+        request.headers.get(
+            "x-real-ip"
+        );
+
+    if (realIp) {
+        return realIp.trim();
+    }
+
+    return "ip-desconocida";
+}
+
+/* =========================================================
+   LIMPIAR RATE LIMIT
+========================================================= */
+
+function limpiarRateLimit() {
+    const ahora =
+        Date.now();
+
+    for (
+        const [
+            ip,
+            registro,
+        ] of rateLimitStore.entries()
+    ) {
+        if (
+            ahora >=
+            registro.reinicio
+        ) {
+            rateLimitStore.delete(
+                ip
+            );
+        }
+    }
+}
+
+/* =========================================================
+   COMPROBAR RATE LIMIT
+========================================================= */
+
+function comprobarRateLimit(
+    ip: string
+) {
+    const ahora =
+        Date.now();
+
+    limpiarRateLimit();
+
+    const registro =
+        rateLimitStore.get(ip);
+
+    if (
+        !registro ||
+        ahora >=
+            registro.reinicio
+    ) {
+        const nuevoRegistro:
+            RegistroRateLimit = {
+            cantidad: 1,
+
+            reinicio:
+                ahora +
+                RATE_LIMIT_VENTANA_MS,
+        };
+
+        rateLimitStore.set(
+            ip,
+            nuevoRegistro
+        );
+
+        return {
+            permitido: true,
+
+            restante:
+                RATE_LIMIT_MAXIMO -
+                1,
+
+            reinicio:
+                nuevoRegistro.reinicio,
+        };
+    }
+
+    if (
+        registro.cantidad >=
+        RATE_LIMIT_MAXIMO
+    ) {
+        return {
+            permitido: false,
+
+            restante: 0,
+
+            reinicio:
+                registro.reinicio,
+        };
+    }
+
+    registro.cantidad += 1;
+
+    rateLimitStore.set(
+        ip,
+        registro
+    );
+
+    return {
+        permitido: true,
+
+        restante:
+            RATE_LIMIT_MAXIMO -
+            registro.cantidad,
+
+        reinicio:
+            registro.reinicio,
+    };
+}
+
+/* =========================================================
+   VALIDAR TEXTO
+========================================================= */
 
 function textoValido(
     valor: unknown,
@@ -91,18 +353,31 @@ function textoValido(
     maximo = 300
 ) {
     return (
-        typeof valor === "string" &&
-        valor.trim().length >= minimo &&
-        valor.trim().length <= maximo
+        typeof valor ===
+            "string" &&
+        valor.trim().length >=
+            minimo &&
+        valor.trim().length <=
+            maximo
     );
 }
 
-function emailValido(valor: unknown) {
-    if (typeof valor !== "string") {
+/* =========================================================
+   VALIDAR EMAIL
+========================================================= */
+
+function emailValido(
+    valor: unknown
+) {
+    if (
+        typeof valor !==
+        "string"
+    ) {
         return false;
     }
 
-    const correo = valor.trim();
+    const correo =
+        valor.trim();
 
     if (
         correo.length < 5 ||
@@ -116,8 +391,17 @@ function emailValido(valor: unknown) {
     );
 }
 
-function telefonoValido(valor: unknown) {
-    if (typeof valor !== "string") {
+/* =========================================================
+   VALIDAR TELÉFONO
+========================================================= */
+
+function telefonoValido(
+    valor: unknown
+) {
+    if (
+        typeof valor !==
+        "string"
+    ) {
         return false;
     }
 
@@ -126,52 +410,88 @@ function telefonoValido(valor: unknown) {
     );
 }
 
+/* =========================================================
+   VALIDAR COORDENADAS
+========================================================= */
+
 function coordenadaValida(
     valor: unknown,
     minimo: number,
     maximo: number
 ) {
     return (
-        typeof valor === "number" &&
+        typeof valor ===
+            "number" &&
         Number.isFinite(valor) &&
         valor >= minimo &&
         valor <= maximo
     );
 }
 
+/* =========================================================
+   CREAR NÚMERO DE PEDIDO
+========================================================= */
+
 function crearNumeroPedido() {
-    const ahora = new Date();
+    const ahora =
+        new Date();
 
-    const anio = String(
-        ahora.getUTCFullYear()
-    );
+    const anio =
+        String(
+            ahora.getUTCFullYear()
+        );
 
-    const mes = String(
-        ahora.getUTCMonth() + 1
-    ).padStart(2, "0");
+    const mes =
+        String(
+            ahora.getUTCMonth() +
+                1
+        ).padStart(
+            2,
+            "0"
+        );
 
-    const dia = String(
-        ahora.getUTCDate()
-    ).padStart(2, "0");
+    const dia =
+        String(
+            ahora.getUTCDate()
+        ).padStart(
+            2,
+            "0"
+        );
 
-    const codigo = randomUUID()
-        .replace(/-/g, "")
-        .slice(0, 8)
-        .toUpperCase();
+    const codigo =
+        randomUUID()
+            .replace(
+                /-/g,
+                ""
+            )
+            .slice(
+                0,
+                8
+            )
+            .toUpperCase();
 
     return `GFC-${anio}${mes}${dia}-${codigo}`;
 }
 
+/* =========================================================
+   CREAR IDEMPOTENCY KEY
+========================================================= */
+
 function crearIdempotencyKey() {
     return `gfc_${randomUUID()}`;
 }
+
+/* =========================================================
+   VALIDAR RESPUESTA DE SUPABASE
+========================================================= */
 
 function esPedidoAtomicoValido(
     valor: unknown
 ): valor is PedidoAtomicoRespuesta {
     if (
         !valor ||
-        typeof valor !== "object"
+        typeof valor !==
+            "object"
     ) {
         return false;
     }
@@ -180,40 +500,178 @@ function esPedidoAtomicoValido(
         valor as Partial<PedidoAtomicoRespuesta>;
 
     return (
-        typeof pedido.id === "string" &&
-        typeof pedido.numero_pedido ===
+        typeof pedido.id ===
             "string" &&
-        typeof pedido.estado === "string" &&
-        typeof pedido.estado_pago ===
+
+        typeof pedido
+            .numero_pedido ===
             "string" &&
-        typeof pedido.total_articulos ===
+
+        typeof pedido.estado ===
+            "string" &&
+
+        typeof pedido
+            .estado_pago ===
+            "string" &&
+
+        typeof pedido
+            .total_articulos ===
             "number" &&
-        typeof pedido.subtotal === "number" &&
+
+        typeof pedido.subtotal ===
+            "number" &&
+
         (
-            pedido.costo_envio === null ||
-            typeof pedido.costo_envio ===
+            pedido.costo_envio ===
+                null ||
+
+            typeof pedido
+                .costo_envio ===
                 "number"
         ) &&
-        typeof pedido.total === "number" &&
-        typeof pedido.moneda === "string" &&
-        typeof pedido.creado_en === "string"
+
+        typeof pedido.total ===
+            "number" &&
+
+        typeof pedido.moneda ===
+            "string" &&
+
+        typeof pedido
+            .creado_en ===
+            "string"
     );
 }
+
+/* =========================================================
+   POST
+   CREAR PEDIDO
+========================================================= */
 
 export async function POST(
     request: NextRequest
 ) {
     try {
-        const body =
-            (await request.json()) as PedidoEntrada;
+        /* =================================================
+           RATE LIMIT
+        ================================================= */
+
+        const ip =
+            obtenerIp(request);
+
+        const limite =
+            comprobarRateLimit(ip);
+
+        const segundosRestantes =
+            Math.max(
+                1,
+                Math.ceil(
+                    (
+                        limite.reinicio -
+                        Date.now()
+                    ) /
+                        1000
+                )
+            );
 
         if (
-            !body ||
-            typeof body !== "object"
+            !limite.permitido
         ) {
             return NextResponse.json(
                 {
                     ok: false,
+
+                    error:
+                        "Se han realizado demasiados intentos de pedido. Espera unos minutos e inténtalo nuevamente.",
+                },
+                {
+                    status: 429,
+
+                    headers: {
+                        "Retry-After":
+                            String(
+                                segundosRestantes
+                            ),
+
+                        "X-RateLimit-Limit":
+                            String(
+                                RATE_LIMIT_MAXIMO
+                            ),
+
+                        "X-RateLimit-Remaining":
+                            "0",
+                    },
+                }
+            );
+        }
+
+        /* =================================================
+           VALIDAR TAMAÑO DE LA SOLICITUD
+        ================================================= */
+
+        const contentLength =
+            request.headers.get(
+                "content-length"
+            );
+
+        if (contentLength) {
+            const bytes =
+                Number(
+                    contentLength
+                );
+
+            if (
+                Number.isFinite(
+                    bytes
+                ) &&
+                bytes > 50_000
+            ) {
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        error:
+                            "La solicitud es demasiado grande.",
+                    },
+                    {
+                        status: 413,
+                    }
+                );
+            }
+        }
+
+        /* =================================================
+           LEER JSON
+        ================================================= */
+
+        let body:
+            PedidoEntrada;
+
+        try {
+            body =
+                (await request.json()) as PedidoEntrada;
+        } catch {
+            return NextResponse.json(
+                {
+                    ok: false,
+
+                    error:
+                        "La solicitud no contiene información válida.",
+                },
+                {
+                    status: 400,
+                }
+            );
+        }
+
+        if (
+            !body ||
+            typeof body !==
+                "object"
+        ) {
+            return NextResponse.json(
+                {
+                    ok: false,
+
                     error:
                         "La información del pedido no es válida.",
                 },
@@ -223,33 +681,50 @@ export async function POST(
             );
         }
 
-        const cliente = body.cliente;
-        const productos = body.productos;
+        const cliente =
+            body.cliente;
+
+        const productos =
+            body.productos;
 
         const metodoPago =
-            body.metodoPago ?? null;
+            body.metodoPago ??
+            null;
+
+        /* =================================================
+           IDEMPOTENCIA
+        ================================================= */
 
         const idempotencyKey =
-            typeof body.idempotencyKey ===
+            typeof body
+                .idempotencyKey ===
                 "string" &&
-            body.idempotencyKey.trim().length >=
+
+            body.idempotencyKey
+                .trim().length >=
                 10 &&
-            body.idempotencyKey.trim().length <=
+
+            body.idempotencyKey
+                .trim().length <=
                 200
+
                 ? body.idempotencyKey.trim()
+
                 : crearIdempotencyKey();
 
-        /* =====================================================
+        /* =================================================
            CLIENTE
-        ===================================================== */
+        ================================================= */
 
         if (
             !cliente ||
-            typeof cliente !== "object"
+            typeof cliente !==
+                "object"
         ) {
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "Faltan los datos del cliente.",
                 },
@@ -269,6 +744,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El nombre del cliente no es válido.",
                 },
@@ -286,6 +762,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El número de teléfono no es válido.",
                 },
@@ -303,6 +780,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El correo electrónico no es válido.",
                 },
@@ -315,12 +793,14 @@ export async function POST(
         if (
             cliente.metodoEntrega !==
                 "envio" &&
+
             cliente.metodoEntrega !==
                 "recoger"
         ) {
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El método de entrega no es válido.",
                 },
@@ -330,12 +810,17 @@ export async function POST(
             );
         }
 
-        /* =====================================================
+        /* =================================================
            ENTREGA + COORDENADAS
-        ===================================================== */
+        ================================================= */
 
-        let latitud: number | null = null;
-        let longitud: number | null = null;
+        let latitud:
+            | number
+            | null = null;
+
+        let longitud:
+            | number
+            | null = null;
 
         if (
             cliente.metodoEntrega ===
@@ -351,6 +836,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "La ciudad de entrega no es válida.",
                     },
@@ -370,6 +856,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "La dirección de entrega no es válida.",
                     },
@@ -388,6 +875,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "La ciudad seleccionada no está configurada para envíos.",
                     },
@@ -400,12 +888,14 @@ export async function POST(
             const tieneLatitud =
                 cliente.latitud !==
                     undefined &&
-                cliente.latitud !== null;
+                cliente.latitud !==
+                    null;
 
             const tieneLongitud =
                 cliente.longitud !==
                     undefined &&
-                cliente.longitud !== null;
+                cliente.longitud !==
+                    null;
 
             if (
                 tieneLatitud !==
@@ -414,6 +904,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "La ubicación de entrega está incompleta.",
                     },
@@ -433,6 +924,7 @@ export async function POST(
                         -90,
                         90
                     ) ||
+
                     !coordenadaValida(
                         cliente.longitud,
                         -180,
@@ -442,6 +934,7 @@ export async function POST(
                     return NextResponse.json(
                         {
                             ok: false,
+
                             error:
                                 "Las coordenadas de entrega no son válidas.",
                         },
@@ -459,6 +952,10 @@ export async function POST(
             }
         }
 
+        /* =================================================
+           RETIRO
+        ================================================= */
+
         if (
             cliente.metodoEntrega ===
             "recoger"
@@ -471,6 +968,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "El punto de retiro seleccionado no es válido.",
                     },
@@ -484,6 +982,10 @@ export async function POST(
             longitud = null;
         }
 
+        /* =================================================
+           NOTAS
+        ================================================= */
+
         if (
             cliente.notas &&
             !textoValido(
@@ -495,6 +997,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "Las notas del pedido son demasiado largas.",
                 },
@@ -504,12 +1007,14 @@ export async function POST(
             );
         }
 
-        /* =====================================================
+        /* =================================================
            MÉTODO DE PAGO
-        ===================================================== */
+        ================================================= */
 
         if (
-            metodoPago !== null &&
+            metodoPago !==
+                null &&
+
             !METODOS_PAGO_VALIDOS.includes(
                 metodoPago
             )
@@ -517,8 +1022,9 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
-                        "El método de pago no es válido.",
+                        "El método de pago no es válido o no está disponible.",
                 },
                 {
                     status: 400,
@@ -526,17 +1032,22 @@ export async function POST(
             );
         }
 
-        /* =====================================================
+        /* =================================================
            PRODUCTOS
-        ===================================================== */
+        ================================================= */
 
         if (
-            !Array.isArray(productos) ||
-            productos.length === 0
+            !Array.isArray(
+                productos
+            ) ||
+
+            productos.length ===
+                0
         ) {
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El pedido no contiene productos.",
                 },
@@ -546,10 +1057,14 @@ export async function POST(
             );
         }
 
-        if (productos.length > 20) {
+        if (
+            productos.length >
+            20
+        ) {
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El pedido contiene demasiados productos.",
                 },
@@ -559,19 +1074,32 @@ export async function POST(
             );
         }
 
-        let subtotalPedido = 0;
-        let totalArticulos = 0;
+        let subtotalPedido =
+            0;
+
+        let totalArticulos =
+            0;
 
         const productosProcesados: {
             producto_id: string;
-            nombre_producto: string;
+
+            nombre_producto:
+                string;
+
             talla: string;
+
             cantidad: number;
-            precio_unitario: number;
+
+            precio_unitario:
+                number;
+
             subtotal: number;
         }[] = [];
 
-        for (const producto of productos) {
+        for (
+            const producto of
+                productos
+        ) {
             if (
                 !producto ||
                 typeof producto !==
@@ -580,6 +1108,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "Existe un producto inválido en el pedido.",
                     },
@@ -589,17 +1118,20 @@ export async function POST(
                 );
             }
 
-            if (
-                !Object.prototype.hasOwnProperty.call(
-                    PRODUCTOS,
+            const productoOficial =
+                PRODUCTOS[
                     producto.id
-                )
+                ];
+
+            if (
+                !productoOficial
             ) {
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
-                            `Producto inválido: ${producto.id}`,
+                            "Uno de los productos seleccionados no es válido.",
                     },
                     {
                         status: 400,
@@ -607,16 +1139,28 @@ export async function POST(
                 );
             }
 
+            /* =============================================
+               TALLA VALIDADA POR PRODUCTO
+
+               Ya no usamos una lista global duplicada.
+               Cada producto usa las tallas publicadas
+               en lib/datos-tienda.ts.
+            ============================================= */
+
             if (
-                !TALLAS_VALIDAS.includes(
+                typeof producto.talla !==
+                    "string" ||
+
+                !productoOficial.tallas.includes(
                     producto.talla
                 )
             ) {
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
-                            `Talla inválida: ${producto.talla}`,
+                            "La talla seleccionada no es válida para uno de los productos.",
                     },
                     {
                         status: 400,
@@ -628,12 +1172,17 @@ export async function POST(
                 !Number.isInteger(
                     producto.cantidad
                 ) ||
-                producto.cantidad < 1 ||
-                producto.cantidad > 10
+
+                producto.cantidad <
+                    1 ||
+
+                producto.cantidad >
+                    10
             ) {
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "La cantidad de uno de los productos no es válida.",
                     },
@@ -643,56 +1192,64 @@ export async function POST(
                 );
             }
 
-            const productoOficial =
-                PRODUCTOS[
-                    producto.id as keyof typeof PRODUCTOS
-                ];
+            /* =============================================
+               PRECIO CALCULADO POR EL SERVIDOR
+
+               Nunca confiamos en precios enviados
+               por el navegador.
+            ============================================= */
 
             const subtotal =
                 productoOficial.precio *
                 producto.cantidad;
 
-            subtotalPedido += subtotal;
+            subtotalPedido +=
+                subtotal;
 
             totalArticulos +=
                 producto.cantidad;
 
-            productosProcesados.push({
-                producto_id:
-                    producto.id,
+            productosProcesados.push(
+                {
+                    producto_id:
+                        producto.id,
 
-                nombre_producto:
-                    productoOficial.nombre,
+                    nombre_producto:
+                        productoOficial.nombre,
 
-                talla:
-                    producto.talla,
+                    talla:
+                        producto.talla,
 
-                cantidad:
-                    producto.cantidad,
+                    cantidad:
+                        producto.cantidad,
 
-                precio_unitario:
-                    productoOficial.precio,
+                    precio_unitario:
+                        productoOficial.precio,
 
-                subtotal,
-            });
+                    subtotal,
+                }
+            );
         }
 
-        /* =====================================================
+        /* =================================================
            ENVÍO
-        ===================================================== */
+        ================================================= */
 
         let costoEnvio:
             | number
             | null = null;
 
-        let envioDisponible = false;
+        let envioDisponible =
+            false;
 
         if (
             cliente.metodoEntrega ===
             "recoger"
         ) {
             costoEnvio = 0;
-            envioDisponible = true;
+
+            envioDisponible =
+                true;
         }
 
         if (
@@ -708,6 +1265,7 @@ export async function POST(
                 return NextResponse.json(
                     {
                         ok: false,
+
                         error:
                             "No existe una tarifa configurada para esta ciudad.",
                     },
@@ -726,99 +1284,114 @@ export async function POST(
                     : null;
         }
 
+        /* =================================================
+           TOTAL FINAL
+
+           Se calcula únicamente en servidor.
+        ================================================= */
+
         const totalPedido =
             subtotalPedido +
-            (costoEnvio ?? 0);
+            (
+                costoEnvio ??
+                0
+            );
 
         const numeroPedido =
             crearNumeroPedido();
 
-        /* =====================================================
-           SUPABASE RPC
-        ===================================================== */
+        /* =================================================
+           SUPABASE
+           CREACIÓN ATÓMICA + IDEMPOTENTE
+        ================================================= */
 
         const {
             data,
             error,
-        } = await supabaseAdmin.rpc(
-            "crear_pedido_atomico",
-            {
-                p_idempotency_key:
-                    idempotencyKey,
+        } =
+            await supabaseAdmin.rpc(
+                "crear_pedido_atomico",
+                {
+                    p_idempotency_key:
+                        idempotencyKey,
 
-                p_numero_pedido:
-                    numeroPedido,
+                    p_numero_pedido:
+                        numeroPedido,
 
-                p_estado:
-                    "pendiente",
+                    p_estado:
+                        "pendiente",
 
-                p_estado_pago:
-                    "pendiente",
+                    p_estado_pago:
+                        "pendiente",
 
-                p_metodo_pago:
-                    metodoPago,
+                    p_metodo_pago:
+                        metodoPago,
 
-                p_nombre_cliente:
-                    cliente.nombre.trim(),
+                    p_nombre_cliente:
+                        cliente.nombre.trim(),
 
-                p_telefono:
-                    cliente.telefono.trim(),
+                    p_telefono:
+                        cliente.telefono.trim(),
 
-                p_correo:
-                    cliente.correo
-                        .trim()
-                        .toLowerCase(),
+                    p_correo:
+                        cliente.correo
+                            .trim()
+                            .toLowerCase(),
 
-                p_metodo_entrega:
-                    cliente.metodoEntrega,
+                    p_metodo_entrega:
+                        cliente.metodoEntrega,
 
-                p_ciudad:
-                    cliente.metodoEntrega ===
-                    "envio"
-                        ? cliente.ciudad.trim()
-                        : null,
+                    p_ciudad:
+                        cliente.metodoEntrega ===
+                        "envio"
+                            ? cliente.ciudad.trim()
+                            : null,
 
-                p_direccion:
-                    cliente.metodoEntrega ===
-                    "envio"
-                        ? cliente.direccion.trim()
-                        : null,
+                    p_direccion:
+                        cliente.metodoEntrega ===
+                        "envio"
+                            ? cliente.direccion.trim()
+                            : null,
 
-                p_punto_retiro:
-                    cliente.metodoEntrega ===
-                    "recoger"
-                        ? cliente.puntoRetiro
-                        : null,
+                    p_punto_retiro:
+                        cliente.metodoEntrega ===
+                        "recoger"
+                            ? cliente.puntoRetiro
+                            : null,
 
-                p_notas:
-                    cliente.notas?.trim() ||
-                    null,
+                    p_notas:
+                        cliente.notas?.trim() ||
+                        null,
 
-                p_latitud:
-                    latitud,
+                    p_latitud:
+                        latitud,
 
-                p_longitud:
-                    longitud,
+                    p_longitud:
+                        longitud,
 
-                p_total_articulos:
-                    totalArticulos,
+                    p_total_articulos:
+                        totalArticulos,
 
-                p_subtotal:
-                    subtotalPedido,
+                    p_subtotal:
+                        subtotalPedido,
 
-                p_costo_envio:
-                    costoEnvio,
+                    p_costo_envio:
+                        costoEnvio,
 
-                p_total:
-                    totalPedido,
+                    p_total:
+                        totalPedido,
 
-                p_moneda:
-                    "HNL",
+                    p_moneda:
+                        "HNL",
 
-                p_items:
-                    productosProcesados,
-            }
-        );
+                    p_items:
+                        productosProcesados,
+                }
+            );
+
+        /* =================================================
+           ERROR SUPABASE
+        ================================================= */
 
         if (error) {
             console.error(
@@ -829,6 +1402,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "No se pudo crear el pedido.",
                 },
@@ -838,22 +1412,9 @@ export async function POST(
             );
         }
 
-        /* =====================================================
-           NORMALIZAR RESPUESTA DE LA RPC
-
-           Las funciones RETURNS TABLE de PostgreSQL
-           normalmente llegan desde Supabase como array.
-
-           Ejemplo:
-           [
-               {
-                   id: "...",
-                   total: 1300
-               }
-           ]
-
-           Nuestro frontend necesita solamente el objeto.
-        ===================================================== */
+        /* =================================================
+           NORMALIZAR RESPUESTA RPC
+        ================================================= */
 
         const pedidoCrudo =
             Array.isArray(data)
@@ -873,6 +1434,7 @@ export async function POST(
             return NextResponse.json(
                 {
                     ok: false,
+
                     error:
                         "El servidor recibió una respuesta inválida al crear el pedido.",
                 },
@@ -892,9 +1454,9 @@ export async function POST(
             pedido.numero_pedido
         );
 
-        /* =====================================================
+        /* =================================================
            RESPUESTA AL FRONTEND
-        ===================================================== */
+        ================================================= */
 
         return NextResponse.json(
             {
@@ -971,6 +1533,18 @@ export async function POST(
             },
             {
                 status: 201,
+
+                headers: {
+                    "X-RateLimit-Limit":
+                        String(
+                            RATE_LIMIT_MAXIMO
+                        ),
+
+                    "X-RateLimit-Remaining":
+                        String(
+                            limite.restante
+                        ),
+                },
             }
         );
     } catch (error) {
@@ -982,6 +1556,7 @@ export async function POST(
         return NextResponse.json(
             {
                 ok: false,
+
                 error:
                     "No se pudo procesar el pedido.",
             },
@@ -991,6 +1566,16 @@ export async function POST(
         );
     }
 }
+
+/* =========================================================
+   GET
+   HEALTH CHECK PÚBLICO
+
+   No exponemos:
+   - variables de entorno
+   - estado de secretos
+   - configuración interna de Supabase
+========================================================= */
 
 export async function GET() {
     return NextResponse.json(
@@ -1002,37 +1587,14 @@ export async function GET() {
 
             estado:
                 "activo",
-
-            almacenamiento:
-                "Supabase PostgreSQL",
-
-            modoCreacion:
-                "atómico + idempotente",
-
-            respuestaRpc:
-                "normalizada",
-
-            envio:
-                "calculado por servidor",
-
-            ubicacion:
-                "preparada para coordenadas",
-
-            configuracion: {
-                supabaseUrl:
-                    process.env.SUPABASE_URL
-                        ? "configurada"
-                        : "faltante",
-
-                supabaseSecret:
-                    process.env
-                        .SUPABASE_SECRET_KEY
-                        ? "configurada"
-                        : "faltante",
-            },
         },
         {
             status: 200,
+
+            headers: {
+                "Cache-Control":
+                    "no-store",
+            },
         }
     );
 }

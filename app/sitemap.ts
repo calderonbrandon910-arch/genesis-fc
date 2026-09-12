@@ -1,167 +1,198 @@
 import type { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.genesisfc.app";
+import { jugadores } from "../lib/datos-plantel";
 
-  return [
+import {
+  noticiasOrdenadas,
+} from "../lib/datos-noticias";
+
+import {
+  productosTienda,
+} from "../lib/datos-tienda";
+
+/* =========================================================
+   CONFIGURACIÓN
+========================================================= */
+
+const BASE_URL =
+  "https://www.genesisfc.app";
+
+/* =========================================================
+   SITEMAP
+========================================================= */
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  /* =======================================================
+     PÁGINAS PRINCIPALES
+  ======================================================= */
+
+  const paginasPrincipales:
+    MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "daily",
+      url: BASE_URL,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "daily",
+
       priority: 1,
     },
+
     {
-      url: `${baseUrl}/equipo`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
+      url:
+        `${BASE_URL}/equipo`,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "weekly",
+
       priority: 0.9,
     },
+
     {
-      url: `${baseUrl}/calendario`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
+      url:
+        `${BASE_URL}/calendario`,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "weekly",
+
       priority: 0.9,
     },
+
     {
-      url: `${baseUrl}/historia`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/partidos/motagua-vs-genesis`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/noticias/genesis-prepara-proximo-desafio`,
-      lastModified: new Date("2026-09-09"),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/noticias/el-equipo-continua-trabajando`,
-      lastModified: new Date("2026-09-08"),
-      changeFrequency: "monthly",
+      url:
+        `${BASE_URL}/historia`,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "monthly",
+
       priority: 0.8,
     },
 
-    // PERFILES DEL PRIMER EQUIPO
+    {
+      url:
+        `${BASE_URL}/tienda`,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "weekly",
+
+      priority: 0.9,
+    },
 
     {
-      url: `${baseUrl}/equipo/balanta`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
+      url:
+        `${BASE_URL}/partidos/motagua-vs-genesis`,
+
+      lastModified:
+        new Date(),
+
+      changeFrequency:
+        "daily",
+
+      priority: 0.85,
     },
-    {
-      url: `${baseUrl}/equipo/dayan-rodriguez`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/juan-mosquera`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/gabriel-araujo`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/manuel-gamboa`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/cristopher-fonseca`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/allans-vargas`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/kevin-perez`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/sander`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/daniel-melendez`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/edwin-maldonado`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/walter-martinez`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/cesar-guillen`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/josman-figueroa`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/denilson-nunez`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/bryan-felix`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/carlos-arzu`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/elias-alderete`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/equipo/angel-alvarado`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
+  ];
+
+  /* =======================================================
+     PERFILES DEL PRIMER EQUIPO
+  ======================================================= */
+
+  const perfiles:
+    MetadataRoute.Sitemap =
+    jugadores.map(
+      (jugador) => ({
+        url:
+          `${BASE_URL}${jugador.enlace}`,
+
+        lastModified:
+          new Date(),
+
+        changeFrequency:
+          "monthly" as const,
+
+        priority:
+          0.7,
+      })
+    );
+
+  /* =======================================================
+     NOTICIAS
+
+     Se generan automáticamente desde datos-noticias.ts
+  ======================================================= */
+
+  const noticias:
+    MetadataRoute.Sitemap =
+    noticiasOrdenadas.map(
+      (noticia) => ({
+        url:
+          `${BASE_URL}${noticia.enlace}`,
+
+        lastModified:
+          new Date(
+            noticia.fechaISO
+          ),
+
+        changeFrequency:
+          "monthly" as const,
+
+        priority:
+          0.8,
+      })
+    );
+
+  /* =======================================================
+     PRODUCTOS DE LA TIENDA
+
+     No incluimos:
+     - carrito
+     - checkout
+     - seguimiento
+     - admin
+
+     porque son páginas funcionales, no contenido
+     destinado a posicionamiento.
+  ======================================================= */
+
+  const productos:
+    MetadataRoute.Sitemap =
+    productosTienda.map(
+      (producto) => ({
+        url:
+          `${BASE_URL}${producto.enlace}`,
+
+        lastModified:
+          new Date(),
+
+        changeFrequency:
+          "weekly" as const,
+
+        priority:
+          0.8,
+      })
+    );
+
+  /* =======================================================
+     RESULTADO
+  ======================================================= */
+
+  return [
+    ...paginasPrincipales,
+    ...perfiles,
+    ...noticias,
+    ...productos,
   ];
 }

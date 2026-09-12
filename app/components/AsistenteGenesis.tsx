@@ -27,6 +27,15 @@ type RespuestaApi = {
   error?: string;
 };
 
+type RutaDetectada = {
+  href: string;
+  label: string;
+};
+
+/* =========================================================
+   MENSAJE DE BIENVENIDA
+========================================================= */
+
 const MENSAJE_BIENVENIDA: MensajeChat = {
   id: "bienvenida",
   role: "assistant",
@@ -34,20 +43,22 @@ const MENSAJE_BIENVENIDA: MensajeChat = {
     "¡Hola! 👋 Soy el Asistente Génesis. Puedo ayudarte con información del club, partidos, plantel, historia, noticias, tienda y seguimiento de pedidos.",
 };
 
+/* =========================================================
+   SUGERENCIAS
+========================================================= */
+
 const SUGERENCIAS = [
+  "¿Cuándo juega Génesis?",
+  "¿Quiénes son los porteros?",
   "¿Dónde compro el jersey?",
-  "Ver próximos partidos",
   "Seguir mi pedido",
-  "Historia del club",
 ];
 
-const RUTAS: Record<
-  string,
-  {
-    href: string;
-    label: string;
-  }
-> = {
+/* =========================================================
+   RUTAS GENERALES
+========================================================= */
+
+const RUTAS: Record<string, RutaDetectada> = {
   "/tienda/seguimiento": {
     href: "/tienda/seguimiento",
     label: "Seguir mi pedido",
@@ -58,24 +69,19 @@ const RUTAS: Record<
     label: "Tienda Oficial",
   },
 
-  "/plantel": {
-    href: "/equipo",
-    label: "Ver plantel",
-  },
-
   "/equipo": {
     href: "/equipo",
     label: "Ver plantel",
   },
 
-  "/partidos": {
-    href: "/partidos",
-    label: "Ver partidos",
-  },
-
   "/calendario": {
     href: "/calendario",
     label: "Ver calendario",
+  },
+
+  "/partidos": {
+    href: "/partidos",
+    label: "Ver partidos",
   },
 
   "/noticias": {
@@ -89,6 +95,10 @@ const RUTAS: Record<
   },
 };
 
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
 function crearId() {
   return `${Date.now()}-${Math.random()
     .toString(36)
@@ -99,218 +109,238 @@ function limpiarMarkdown(texto: string) {
   return texto
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/__(.*?)__/g, "$1")
-    .replace(/`([^`]+)`/g, "$1");
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1");
 }
+
+/* =========================================================
+   DETECTAR RUTAS GENERALES
+========================================================= */
 
 function detectarRutas(texto: string) {
   const encontradas: string[] = [];
 
-  const rutasOrdenadas = Object.keys(
-    RUTAS
-  ).sort(
-    (a, b) =>
-      b.length - a.length
+  const rutasOrdenadas = Object.keys(RUTAS).sort(
+    (a, b) => b.length - a.length
   );
 
   for (const ruta of rutasOrdenadas) {
     if (
-      texto
-        .toLowerCase()
-        .includes(
-          ruta.toLowerCase()
-        ) &&
+      texto.toLowerCase().includes(ruta.toLowerCase()) &&
       !encontradas.includes(ruta)
     ) {
       encontradas.push(ruta);
     }
   }
 
-  const textoNormalizado =
-    texto.toLowerCase();
+  const textoNormalizado = texto.toLowerCase();
 
   if (
-    (
-      textoNormalizado.includes(
-        "tienda oficial"
-      ) ||
-      textoNormalizado.includes(
-        "comprar el jersey"
-      ) ||
-      textoNormalizado.includes(
-        "comprar el uniforme"
-      ) ||
-      textoNormalizado.includes(
-        "comprar la camiseta"
-      ) ||
-      textoNormalizado.includes(
-        "comprar jersey"
-      )
-    ) &&
-    !encontradas.includes(
-      "/tienda"
-    )
+    (textoNormalizado.includes("tienda oficial") ||
+      textoNormalizado.includes("comprar el jersey") ||
+      textoNormalizado.includes("comprar jersey") ||
+      textoNormalizado.includes("comprar el uniforme") ||
+      textoNormalizado.includes("comprar la camiseta")) &&
+    !encontradas.includes("/tienda")
   ) {
-    encontradas.push(
-      "/tienda"
-    );
+    encontradas.push("/tienda");
   }
 
   if (
-    (
-      textoNormalizado.includes(
-        "seguir mi pedido"
-      ) ||
-      textoNormalizado.includes(
-        "seguimiento de pedido"
-      ) ||
-      textoNormalizado.includes(
-        "seguimiento del pedido"
-      ) ||
-      textoNormalizado.includes(
-        "rastrear mi pedido"
-      ) ||
-      textoNormalizado.includes(
-        "consultar mi pedido"
-      ) ||
-      textoNormalizado.includes(
-        "estado de mi pedido"
-      )
-    ) &&
-    !encontradas.includes(
-      "/tienda/seguimiento"
-    )
+    (textoNormalizado.includes("seguir mi pedido") ||
+      textoNormalizado.includes("seguimiento de pedido") ||
+      textoNormalizado.includes("seguimiento del pedido") ||
+      textoNormalizado.includes("rastrear mi pedido") ||
+      textoNormalizado.includes("consultar mi pedido") ||
+      textoNormalizado.includes("estado de mi pedido")) &&
+    !encontradas.includes("/tienda/seguimiento")
   ) {
-    encontradas.unshift(
-      "/tienda/seguimiento"
-    );
+    encontradas.unshift("/tienda/seguimiento");
   }
 
   if (
-    (
-      textoNormalizado.includes(
-        "historia del club"
-      ) ||
-      textoNormalizado.includes(
-        "nuestra historia"
-      )
-    ) &&
-    !encontradas.includes(
-      "/historia"
-    )
+    (textoNormalizado.includes("historia del club") ||
+      textoNormalizado.includes("nuestra historia")) &&
+    !encontradas.includes("/historia")
   ) {
-    encontradas.push(
-      "/historia"
-    );
+    encontradas.push("/historia");
   }
 
   if (
-    (
-      textoNormalizado.includes(
-        "plantel"
-      ) ||
-      textoNormalizado.includes(
-        "plantilla"
-      ) ||
-      textoNormalizado.includes(
-        "jugadores"
-      )
-    ) &&
-    !encontradas.includes(
-      "/equipo"
-    ) &&
-    !encontradas.includes(
-      "/plantel"
-    )
+    (textoNormalizado.includes("plantel") ||
+      textoNormalizado.includes("plantilla") ||
+      textoNormalizado.includes("porteros") ||
+      textoNormalizado.includes("defensas") ||
+      textoNormalizado.includes("mediocampistas") ||
+      textoNormalizado.includes("delanteros") ||
+      textoNormalizado.includes("jugadores")) &&
+    !encontradas.includes("/equipo")
   ) {
-    encontradas.push(
-      "/equipo"
-    );
+    encontradas.push("/equipo");
   }
 
   if (
-    (
-      textoNormalizado.includes(
-        "próximos partidos"
-      ) ||
-      textoNormalizado.includes(
-        "proximos partidos"
-      ) ||
-      textoNormalizado.includes(
-        "calendario"
-      ) ||
-      textoNormalizado.includes(
-        "cuándo juega"
-      ) ||
-      textoNormalizado.includes(
-        "cuando juega"
-      )
-    ) &&
-    !encontradas.includes(
-      "/calendario"
-    ) &&
-    !encontradas.includes(
-      "/partidos"
-    )
+    (textoNormalizado.includes("próximos partidos") ||
+      textoNormalizado.includes("proximos partidos") ||
+      textoNormalizado.includes("calendario") ||
+      textoNormalizado.includes("cuándo juega") ||
+      textoNormalizado.includes("cuando juega") ||
+      textoNormalizado.includes("clasificación") ||
+      textoNormalizado.includes("clasificacion")) &&
+    !encontradas.includes("/calendario")
   ) {
-    encontradas.push(
-      "/calendario"
-    );
+    encontradas.push("/calendario");
   }
 
-  return encontradas.slice(
-    0,
-    3
-  );
+  return encontradas.slice(0, 3);
 }
 
-function renderizarTextoConNegrita(
-  texto: string
-): ReactNode[] {
-  const partes = texto.split(
-    /(\*\*.*?\*\*)/g
-  );
+/* =========================================================
+   RENDER DE TEXTO
+   SOPORTA:
+   - **negrita**
+   - [texto](/ruta)
+========================================================= */
 
-  return partes.map(
-    (parte, index) => {
+function renderizarTexto(texto: string): ReactNode[] {
+  const patron =
+    /(\*\*.*?\*\*|\[[^\]]+\]\([^)]+\))/g;
+
+  const partes = texto.split(patron);
+
+  return partes.map((parte, index) => {
+    const clave = `${index}-${parte}`;
+
+    /* -------------------------------------------------------
+       NEGRITA
+    ------------------------------------------------------- */
+
+    if (
+      parte.startsWith("**") &&
+      parte.endsWith("**")
+    ) {
+      return (
+        <strong
+          key={clave}
+          className="font-black text-white"
+        >
+          {parte.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    /* -------------------------------------------------------
+       LINK MARKDOWN
+    ------------------------------------------------------- */
+
+    const link = parte.match(
+      /^\[([^\]]+)\]\(([^)]+)\)$/
+    );
+
+    if (link) {
+      const label = link[1];
+      const href = link[2];
+
+      /* -----------------------------------------------------
+         LINKS INTERNOS DEL SITIO
+      ----------------------------------------------------- */
+
+      if (href.startsWith("/")) {
+        return (
+          <Link
+            key={clave}
+            href={href}
+            className="font-black text-cyan-300 underline decoration-cyan-300/35 underline-offset-4 transition hover:text-white"
+          >
+            {label}
+          </Link>
+        );
+      }
+
+      /* -----------------------------------------------------
+         LINKS EXTERNOS
+      ----------------------------------------------------- */
+
       if (
-        parte.startsWith(
-          "**"
-        ) &&
-        parte.endsWith(
-          "**"
-        )
+        href.startsWith("https://") ||
+        href.startsWith("http://")
       ) {
         return (
-          <strong
-            key={`${parte}-${index}`}
-            className="font-black text-white"
+          <a
+            key={clave}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-black text-cyan-300 underline decoration-cyan-300/35 underline-offset-4 transition hover:text-white"
           >
-            {parte.slice(
-              2,
-              -2
-            )}
-          </strong>
+            {label}
+          </a>
         );
       }
 
       return (
-        <span
-          key={`${parte}-${index}`}
-        >
-          {parte}
+        <span key={clave}>
+          {label}
         </span>
       );
     }
-  );
+
+    return (
+      <span key={clave}>
+        {parte}
+      </span>
+    );
+  });
 }
+
+/* =========================================================
+   DETECTAR LINKS DE PERFILES
+========================================================= */
+
+function detectarPerfiles(texto: string) {
+  const patron =
+    /\[([^\]]+)\]\((\/equipo\/[^)]+)\)/g;
+
+  const perfiles: {
+    label: string;
+    href: string;
+  }[] = [];
+
+  let coincidencia: RegExpExecArray | null;
+
+  while (
+    (coincidencia = patron.exec(texto)) !== null
+  ) {
+    const label = coincidencia[1];
+    const href = coincidencia[2];
+
+    if (
+      !perfiles.some(
+        (perfil) => perfil.href === href
+      )
+    ) {
+      perfiles.push({
+        label,
+        href,
+      });
+    }
+  }
+
+  return perfiles;
+}
+
+/* =========================================================
+   CONTENIDO DEL MENSAJE
+========================================================= */
 
 function ContenidoMensaje({
   texto,
 }: {
   texto: string;
 }) {
-  const rutas =
-    detectarRutas(texto);
+  const rutas = detectarRutas(texto);
+
+  const perfiles = detectarPerfiles(texto);
 
   const lineas = texto
     .replace(
@@ -318,304 +348,259 @@ function ContenidoMensaje({
       "$1"
     )
     .split("\n")
-    .filter(
-      (
-        linea,
-        index,
-        array
-      ) => {
-        if (
-          linea.trim()
-        ) {
-          return true;
-        }
-
-        return (
-          index > 0 &&
-          index <
-            array.length -
-              1
-        );
+    .filter((linea, index, array) => {
+      if (linea.trim()) {
+        return true;
       }
-    );
+
+      return (
+        index > 0 &&
+        index < array.length - 1
+      );
+    });
 
   return (
     <div>
+      {/* =====================================================
+          TEXTO
+      ===================================================== */}
+
       <div className="space-y-2">
-        {lineas.map(
-          (
-            linea,
-            index
-          ) => {
-            const esLista =
-              linea
-                .trim()
-                .startsWith(
-                  "- "
-                ) ||
-              linea
-                .trim()
-                .startsWith(
-                  "• "
-                );
+        {lineas.map((linea, index) => {
+          const lineaLimpia =
+            linea.trim();
 
-            const contenido =
-              esLista
-                ? linea
-                    .trim()
-                    .slice(2)
-                : linea;
+          const esLista =
+            lineaLimpia.startsWith("- ") ||
+            lineaLimpia.startsWith("• ") ||
+            lineaLimpia.startsWith("* ");
 
-            return (
-              <div
-                key={`${linea}-${index}`}
-                className={
-                  esLista
-                    ? "flex items-start gap-2"
-                    : ""
-                }
-              >
-                {esLista && (
-                  <span
-                    aria-hidden="true"
-                    className="mt-[8px] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300"
-                  />
+          const contenido = esLista
+            ? lineaLimpia.slice(2)
+            : linea;
+
+          return (
+            <div
+              key={`${index}-${linea}`}
+              className={
+                esLista
+                  ? "flex items-start gap-2"
+                  : ""
+              }
+            >
+              {esLista && (
+                <span
+                  aria-hidden="true"
+                  className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-300"
+                />
+              )}
+
+              <p className="whitespace-pre-wrap">
+                {renderizarTexto(
+                  contenido
                 )}
-
-                <p className="whitespace-pre-wrap">
-                  {renderizarTextoConNegrita(
-                    contenido
-                  )}
-                </p>
-              </div>
-            );
-          }
-        )}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
-      {rutas.length >
-        0 && (
+      {/* =====================================================
+          BOTONES DE PERFILES INDIVIDUALES
+      ===================================================== */}
+
+      {perfiles.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {perfiles.map((perfil) => {
+            const nombre =
+              perfil.label
+                .replace(
+                  /^ver perfil(?: de)?\s*/i,
+                  ""
+                )
+                .trim();
+
+            return (
+              <Link
+                key={perfil.href}
+                href={perfil.href}
+                className="group flex items-center justify-between gap-4 rounded-[16px] border border-cyan-300/20 bg-cyan-300/[0.06] px-4 py-3 transition hover:border-cyan-300/50 hover:bg-cyan-300/[0.12]"
+              >
+                <div>
+                  <p className="text-[7px] font-black uppercase tracking-[0.16em] text-cyan-300/60">
+                    Perfil del jugador
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-black uppercase text-cyan-200">
+                    {nombre ||
+                      perfil.label}
+                  </p>
+                </div>
+
+                <span className="text-sm font-black text-cyan-300 transition group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* =====================================================
+          BOTONES GENERALES
+      ===================================================== */}
+
+      {rutas.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {rutas.map(
-            (ruta) => {
-              const destino =
-                RUTAS[
-                  ruta
-                ];
+          {rutas.map((ruta) => {
+            const destino =
+              RUTAS[ruta];
 
-              if (
-                !destino
-              ) {
-                return null;
-              }
-
-              return (
-                <Link
-                  key={
-                    ruta
-                  }
-                  href={
-                    destino.href
-                  }
-                  className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/[0.09] px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:border-cyan-300/50 hover:bg-cyan-300 hover:text-[#03122b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
-                >
-                  {
-                    destino.label
-                  }
-
-                  <span
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </Link>
-              );
+            if (!destino) {
+              return null;
             }
-          )}
+
+            return (
+              <Link
+                key={ruta}
+                href={destino.href}
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-300/[0.09] px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.1em] text-cyan-200 transition hover:border-cyan-300/50 hover:bg-cyan-300 hover:text-[#03122b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              >
+                {destino.label}
+
+                <span aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
+/* =========================================================
+   COMPONENTE
+========================================================= */
+
 export default function AsistenteGenesis() {
-  const [
-    abierto,
-    setAbierto,
-  ] = useState(false);
+  const [abierto, setAbierto] =
+    useState(false);
 
-  const [
-    mensajes,
-    setMensajes,
-  ] = useState<
-    MensajeChat[]
-  >([
-    MENSAJE_BIENVENIDA,
-  ]);
+  const [mensajes, setMensajes] =
+    useState<MensajeChat[]>([
+      MENSAJE_BIENVENIDA,
+    ]);
 
-  const [
-    entrada,
-    setEntrada,
-  ] = useState("");
+  const [entrada, setEntrada] =
+    useState("");
 
-  const [
-    enviando,
-    setEnviando,
-  ] = useState(false);
+  const [enviando, setEnviando] =
+    useState(false);
 
   const finalMensajesRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
+    useRef<HTMLDivElement | null>(null);
 
   const textareaRef =
-    useRef<HTMLTextAreaElement | null>(
-      null
-    );
+    useRef<HTMLTextAreaElement | null>(null);
+
+  /* =========================================================
+     AUTO SCROLL
+  ========================================================= */
 
   useEffect(() => {
     if (!abierto) {
       return;
     }
 
-    finalMensajesRef.current?.scrollIntoView(
-      {
-        behavior:
-          "smooth",
-        block: "end",
-      }
-    );
-  }, [
-    mensajes,
-    enviando,
-    abierto,
-  ]);
+    finalMensajesRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [mensajes, enviando, abierto]);
+
+  /* =========================================================
+     FOCUS
+  ========================================================= */
 
   useEffect(() => {
     if (!abierto) {
       return;
     }
 
-    const timeout =
-      window.setTimeout(
-        () => {
-          textareaRef.current?.focus();
-        },
-        150
-      );
+    const timeout = window.setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 150);
 
     return () => {
-      window.clearTimeout(
-        timeout
-      );
+      window.clearTimeout(timeout);
     };
   }, [abierto]);
+
+  /* =========================================================
+     ENVIAR MENSAJE
+  ========================================================= */
 
   async function enviarMensaje(
     mensajeManual?: string
   ) {
     const texto = (
-      mensajeManual ??
-      entrada
+      mensajeManual ?? entrada
     ).trim();
 
-    if (
-      !texto ||
-      enviando
-    ) {
+    if (!texto || enviando) {
       return;
     }
 
     const textoSeguro =
-      texto.slice(
-        0,
-        1000
-      );
-
-    /*
-    =========================================================
-    HISTORIAL PARA NUESTRA API
-
-    IMPORTANTE:
-    /api/asistente espera exactamente:
-
-    {
-      role: "user" | "assistant",
-      content: string
-    }
-
-    No usamos "model" ni "text" aquí.
-    =========================================================
-    */
+      texto.slice(0, 1000);
 
     const historial: MensajeHistorialApi[] =
       mensajes
         .filter(
-          (
-            mensaje
-          ) =>
-            mensaje.id !==
-            "bienvenida"
+          (mensaje) =>
+            mensaje.id !== "bienvenida"
         )
         .slice(-10)
-        .map(
-          (
-            mensaje
-          ) => ({
-            role:
-              mensaje.role,
-            content:
-              mensaje.text,
-          })
-        );
+        .map((mensaje) => ({
+          role: mensaje.role,
+          content: mensaje.text,
+        }));
 
-    const mensajeUsuario: MensajeChat =
-      {
-        id: crearId(),
-        role: "user",
-        text: textoSeguro,
-      };
+    const mensajeUsuario: MensajeChat = {
+      id: crearId(),
+      role: "user",
+      text: textoSeguro,
+    };
 
-    setMensajes(
-      (
-        actuales
-      ) => [
-        ...actuales,
-        mensajeUsuario,
-      ]
-    );
+    setMensajes((actuales) => [
+      ...actuales,
+      mensajeUsuario,
+    ]);
 
     setEntrada("");
-    setEnviando(
-      true
-    );
+    setEnviando(true);
 
     try {
-      const respuesta =
-        await fetch(
-          "/api/asistente",
-          {
-            method:
-              "POST",
+      const respuesta = await fetch(
+        "/api/asistente",
+        {
+          method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-            body: JSON.stringify(
-              {
-                mensaje:
-                  textoSeguro,
+          body: JSON.stringify({
+            mensaje: textoSeguro,
+            historial,
+          }),
+        }
+      );
 
-                historial,
-              }
-            ),
-          }
-        );
-
-      let datos: RespuestaApi =
-        {};
+      let datos: RespuestaApi = {};
 
       try {
         datos =
@@ -638,70 +623,52 @@ export default function AsistenteGenesis() {
           }
         );
 
-        setMensajes(
-          (
-            actuales
-          ) => [
-            ...actuales,
-            {
-              id: crearId(),
-              role:
-                "assistant",
-              text:
-                datos.error ||
-                "Ahora mismo no pude responder. Inténtalo nuevamente en unos segundos.",
-            },
-          ]
-        );
+        setMensajes((actuales) => [
+          ...actuales,
+          {
+            id: crearId(),
+            role: "assistant",
+            text:
+              datos.error ||
+              "Ahora mismo no pude responder. Inténtalo nuevamente en unos segundos.",
+          },
+        ]);
 
         return;
       }
 
-      const textoRespuesta =
-        datos.respuesta.trim();
-
-      setMensajes(
-        (
-          actuales
-        ) => [
-          ...actuales,
-          {
-            id: crearId(),
-            role:
-              "assistant",
-            text:
-              textoRespuesta,
-          },
-        ]
-      );
-    } catch (
-      error
-    ) {
+      setMensajes((actuales) => [
+        ...actuales,
+        {
+          id: crearId(),
+          role: "assistant",
+          text:
+            datos.respuesta!.trim(),
+        },
+      ]);
+    } catch (error) {
       console.error(
         "Error conectando con el Asistente Génesis:",
         error
       );
 
-      setMensajes(
-        (
-          actuales
-        ) => [
-          ...actuales,
-          {
-            id: crearId(),
-            role:
-              "assistant",
-            text:
-              "Ahora mismo no pude responder. Inténtalo nuevamente en unos segundos.",
-          },
-        ]
-      );
+      setMensajes((actuales) => [
+        ...actuales,
+        {
+          id: crearId(),
+          role: "assistant",
+          text:
+            "Ahora mismo no pude responder. Inténtalo nuevamente en unos segundos.",
+        },
+      ]);
     } finally {
-      setEnviando(
-        false
-      );
+      setEnviando(false);
     }
   }
+
+  /* =========================================================
+     SUBMIT
+  ========================================================= */
 
   function manejarSubmit(
     event: FormEvent<HTMLFormElement>
@@ -711,21 +678,27 @@ export default function AsistenteGenesis() {
     void enviarMensaje();
   }
 
+  /* =========================================================
+     ENTER
+  ========================================================= */
+
   function manejarTeclado(
     event: KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (
-      event.key ===
-        "Enter" &&
+      event.key === "Enter" &&
       !event.shiftKey &&
-      !event.nativeEvent
-        .isComposing
+      !event.nativeEvent.isComposing
     ) {
       event.preventDefault();
 
       void enviarMensaje();
     }
   }
+
+  /* =========================================================
+     NUEVA CONVERSACIÓN
+  ========================================================= */
 
   function nuevaConversacion() {
     if (enviando) {
@@ -738,18 +711,15 @@ export default function AsistenteGenesis() {
 
     setEntrada("");
 
-    window.setTimeout(
-      () => {
-        textareaRef.current?.focus();
-      },
-      100
-    );
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
   }
 
   return (
     <>
       {/* =====================================================
-          VENTANA DEL ASISTENTE
+          VENTANA
       ===================================================== */}
 
       {abierto && (
@@ -758,7 +728,7 @@ export default function AsistenteGenesis() {
           className="fixed bottom-[96px] right-4 z-[100] flex h-[min(680px,calc(100dvh-120px))] w-[calc(100vw-2rem)] max-w-[390px] flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[#03122b] shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:bottom-[110px] sm:right-6"
         >
           {/* =================================================
-              CABECERA
+              HEADER
           ================================================= */}
 
           <header className="relative overflow-hidden border-b border-white/10 bg-gradient-to-r from-[#0757bb] to-[#159cc4] px-5 py-5">
@@ -788,8 +758,7 @@ export default function AsistenteGenesis() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h2 className="truncate text-[15px] font-black uppercase tracking-[-0.03em] text-white">
-                      Asistente
-                      Génesis
+                      Asistente Génesis
                     </h2>
 
                     <span className="rounded-full border border-white/15 bg-white/10 px-2 py-1 text-[7px] font-black uppercase tracking-[0.12em] text-cyan-100">
@@ -804,9 +773,7 @@ export default function AsistenteGenesis() {
                     />
 
                     <p className="truncate text-[7px] font-black uppercase tracking-[0.18em] text-cyan-100/80">
-                      Asistente
-                      oficial del
-                      sitio
+                      Asistente oficial del sitio
                     </p>
                   </div>
                 </div>
@@ -815,9 +782,7 @@ export default function AsistenteGenesis() {
               <button
                 type="button"
                 onClick={() =>
-                  setAbierto(
-                    false
-                  )
+                  setAbierto(false)
                 }
                 aria-label="Cerrar Asistente Génesis"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-lg text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -833,62 +798,59 @@ export default function AsistenteGenesis() {
 
           <div className="flex-1 overflow-y-auto px-4 py-5">
             <div className="space-y-4">
-              {mensajes.map(
-                (
-                  mensaje
-                ) => {
-                  const esUsuario =
-                    mensaje.role ===
-                    "user";
+              {mensajes.map((mensaje) => {
+                const esUsuario =
+                  mensaje.role === "user";
 
-                  return (
+                return (
+                  <div
+                    key={mensaje.id}
+                    className={`flex ${
+                      esUsuario
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
                     <div
-                      key={
-                        mensaje.id
-                      }
-                      className={`flex ${
+                      className={`max-w-[88%] rounded-[22px] px-4 py-4 text-[13px] leading-6 ${
                         esUsuario
-                          ? "justify-end"
-                          : "justify-start"
+                          ? "rounded-br-[7px] bg-[#159cc4] text-white"
+                          : "rounded-bl-[7px] border border-white/10 bg-white/[0.07] text-white/90"
                       }`}
                     >
-                      <div
-                        className={`max-w-[88%] rounded-[22px] px-4 py-4 text-[13px] leading-6 ${
-                          esUsuario
-                            ? "rounded-br-[7px] bg-[#159cc4] text-white"
-                            : "rounded-bl-[7px] border border-white/10 bg-white/[0.07] text-white/90"
-                        }`}
-                      >
-                        {!esUsuario && (
-                          <div className="mb-3 flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-300 text-[9px] font-black text-[#03122b]">
-                              G
-                            </span>
+                      {!esUsuario && (
+                        <div className="mb-3 flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-300 text-[9px] font-black text-[#03122b]">
+                            G
+                          </span>
 
-                            <span className="text-[7px] font-black uppercase tracking-[0.18em] text-cyan-300">
-                              Génesis
-                            </span>
-                          </div>
-                        )}
+                          <span className="text-[7px] font-black uppercase tracking-[0.18em] text-cyan-300">
+                            Génesis
+                          </span>
+                        </div>
+                      )}
 
-                        {esUsuario ? (
-                          <p className="whitespace-pre-wrap">
-                            {limpiarMarkdown(
-                              mensaje.text
-                            )}
-                          </p>
-                        ) : (
-                          <ContenidoMensaje
-                            texto={
-                              mensaje.text
-                            }
-                          />
-                        )}
-                      </div>
+                      {esUsuario ? (
+                        <p className="whitespace-pre-wrap">
+                          {limpiarMarkdown(
+                            mensaje.text
+                          )}
+                        </p>
+                      ) : (
+                        <ContenidoMensaje
+                          texto={
+                            mensaje.text
+                          }
+                        />
+                      )}
                     </div>
-                  );
-                }
-              )}
+                  </div>
+                );
+              })}
+
+              {/* =================================================
+                  ESCRIBIENDO
+              ================================================= */}
 
               {enviando && (
                 <div className="flex justify-start">
@@ -928,20 +890,16 @@ export default function AsistenteGenesis() {
                 SUGERENCIAS
             ================================================= */}
 
-            {mensajes.length ===
-              1 &&
+            {mensajes.length === 1 &&
               !enviando && (
                 <div className="mt-5">
                   <p className="mb-3 text-[7px] font-black uppercase tracking-[0.18em] text-white/30">
-                    Puedes
-                    preguntarme
+                    Puedes preguntarme
                   </p>
 
                   <div className="flex flex-wrap gap-2">
                     {SUGERENCIAS.map(
-                      (
-                        sugerencia
-                      ) => (
+                      (sugerencia) => (
                         <button
                           key={
                             sugerencia
@@ -969,7 +927,7 @@ export default function AsistenteGenesis() {
           </div>
 
           {/* =================================================
-              CAJA DE MENSAJE
+              INPUT
           ================================================= */}
 
           <div className="border-t border-white/10 bg-[#03122b] p-4">
@@ -998,8 +956,7 @@ export default function AsistenteGenesis() {
                     event
                   ) =>
                     setEntrada(
-                      event
-                        .target
+                      event.target
                         .value
                     )
                   }
@@ -1027,8 +984,7 @@ export default function AsistenteGenesis() {
 
             <div className="mt-3 flex items-center justify-between gap-4">
               <p className="text-[6px] text-white/25">
-                La IA puede
-                cometer errores.
+                La IA puede cometer errores.
               </p>
 
               <button
@@ -1041,8 +997,7 @@ export default function AsistenteGenesis() {
                 }
                 className="text-[6px] font-black uppercase tracking-[0.13em] text-white/30 transition hover:text-cyan-300 disabled:opacity-40"
               >
-                Nueva
-                conversación
+                Nueva conversación
               </button>
             </div>
           </div>
@@ -1057,9 +1012,7 @@ export default function AsistenteGenesis() {
         type="button"
         onClick={() =>
           setAbierto(
-            (
-              actual
-            ) =>
+            (actual) =>
               !actual
           )
         }
@@ -1081,8 +1034,7 @@ export default function AsistenteGenesis() {
 
         <span className="hidden text-left sm:block">
           <span className="block text-[9px] font-black uppercase tracking-[0.1em]">
-            Asistente
-            Génesis
+            Asistente Génesis
           </span>
 
           <span className="mt-0.5 block text-[6px] font-black uppercase tracking-[0.16em] text-cyan-200">
