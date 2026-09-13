@@ -11,25 +11,25 @@ import AsistenteGenesis from "./components/AsistenteGenesis";
 
 const noticias = [
   {
+    imagen: "/golmotagua.jpg",
+    categoria: "PRIMER EQUIPO",
+    fecha: "12 SEP 2026",
+    titulo: "Motagua se impone 1-0 ante Génesis FC",
+    enlace: "/noticias/motagua-1-0-genesis",
+  },
+  {
+    imagen: "/tapadabalanta.png",
+    categoria: "PRIMER EQUIPO",
+    fecha: "12 SEP 2026",
+    titulo: "La tapada de Balanta",
+    enlace: "/noticias/la-tapada-de-balanta",
+  },
+  {
     imagen: "/motagua-genesis-portada-4.jpg",
     categoria: "PRIMER EQUIPO",
     fecha: "09 SEP 2026",
     titulo: "Partido intenso el fin de semana",
     enlace: "/noticias/genesis-prepara-proximo-desafio",
-  },
-  {
-    imagen: "/noticia-2.jpg",
-    categoria: "PRIMER EQUIPO",
-    fecha: "08 SEP 2026",
-    titulo: "El equipo continúa trabajando de cara al próximo compromiso",
-    enlace: "/noticias/el-equipo-continua-trabajando",
-  },
-  {
-    imagen: "/noticia-3.jpg",
-    categoria: "CLUB",
-    fecha: "08 SEP 2026",
-    titulo: "Toda la actualidad y novedades de Génesis FC",
-    enlace: null,
   },
 ];
 
@@ -38,6 +38,17 @@ const noticias = [
 ========================================================= */
 
 const resultados = [
+  {
+    fecha: "12 SEP 2026",
+    competicion: "Liga Nacional",
+    local: "Motagua",
+    logoLocal: "/motagua.png",
+    golesLocal: 1,
+    visitante: "Génesis FC",
+    logoVisitante: "/genesis.jpg",
+    golesVisitante: 0,
+    resultadoGenesis: "Derrota",
+  },
   {
     fecha: "06 SEP 2026",
     competicion: "Liga Nacional",
@@ -70,17 +81,6 @@ const resultados = [
     logoVisitante: "/genesis.jpg",
     golesVisitante: 1,
     resultadoGenesis: "Empate",
-  },
-  {
-    fecha: "15 AGO 2026",
-    competicion: "Liga Nacional",
-    local: "Génesis FC",
-    logoLocal: "/genesis.jpg",
-    golesLocal: 3,
-    visitante: "Platense",
-    logoVisitante: "/platense.jpg",
-    golesVisitante: 0,
-    resultadoGenesis: "Victoria",
   },
 ];
 
@@ -132,7 +132,7 @@ type TiempoRestante = {
 
 function calcularTiempoRestante(): TiempoRestante {
   const fechaPartido = new Date(
-    "2026-09-12T19:00:00-06:00"
+    "2026-09-19T15:00:00-06:00"
   ).getTime();
 
   const diferencia = Math.max(
@@ -231,7 +231,7 @@ function CuentaRegresiva() {
       <div className="mx-auto mt-10 max-w-[760px]">
         <div
           className="rounded-[28px] border border-cyan-300/30 bg-cyan-300/[0.08] px-6 py-10 text-center"
-          aria-label="Hoy juega Génesis FC contra Motagua a las 7 de la noche"
+          aria-label="Hoy juega Génesis FC contra Olancho FC a las 3 de la tarde"
         >
           <span
             aria-hidden="true"
@@ -247,7 +247,7 @@ function CuentaRegresiva() {
           </h3>
 
           <p className="mt-4 text-xs text-white/40">
-            Motagua vs Génesis FC · 7:00 PM
+            Génesis FC vs Olancho FC · 3:00 PM
           </p>
         </div>
       </div>
@@ -278,7 +278,7 @@ function CuentaRegresiva() {
       className="mx-auto mt-10 max-w-[820px]"
       role="timer"
       aria-live="off"
-      aria-label={`Faltan ${tiempo.dias} días, ${tiempo.horas} horas y ${tiempo.minutos} minutos para Motagua contra Génesis FC`}
+      aria-label={`Faltan ${tiempo.dias} días, ${tiempo.horas} horas y ${tiempo.minutos} minutos para Génesis FC contra Olancho FC`}
     >
       <div className="mb-6 text-center">
         <p className="text-[8px] font-black uppercase tracking-[0.32em] text-cyan-300 sm:text-[9px]">
@@ -286,7 +286,7 @@ function CuentaRegresiva() {
         </p>
 
         <p className="mt-3 text-[7px] font-black uppercase tracking-[0.16em] text-white/30 sm:text-[8px]">
-          Falta para Motagua vs Génesis FC
+          Falta para Génesis FC vs Olancho FC
         </p>
       </div>
 
@@ -336,7 +336,7 @@ function CuentaRegresiva() {
         />
 
         <p className="text-center text-[7px] font-black uppercase tracking-[0.17em] text-white/40 sm:text-[8px]">
-          12 SEP 2026 · 7:00 PM · HONDURAS
+          19 SEP 2026 · 3:00 PM · HONDURAS
         </p>
       </div>
     </div>
@@ -419,6 +419,13 @@ export default function Home() {
 
           <div className="hidden items-center gap-3 lg:flex">
             <Link
+              href="/admin/live"
+              className={`rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] px-6 py-4 text-[8px] font-black uppercase tracking-[0.16em] text-cyan-300 transition hover:bg-cyan-300 hover:text-[#020817] ${focusDark}`}
+            >
+              Live Ops
+            </Link>
+
+            <Link
               href="/calendario"
               className={`rounded-full border border-white/15 px-7 py-4 text-[9px] font-black uppercase tracking-[0.16em] transition hover:bg-white hover:text-[#020817] ${focusDark}`}
             >
@@ -487,11 +494,21 @@ export default function Home() {
               )}
 
               <Link
+                href="/admin/live"
+                onClick={() =>
+                  setMenuOpen(false)
+                }
+                className={`mt-5 rounded-full border border-amber-300/30 bg-amber-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-amber-300 ${focusDark}`}
+              >
+                Live Ops
+              </Link>
+
+              <Link
                 href="/equipo"
                 onClick={() =>
                   setMenuOpen(false)
                 }
-                className={`mt-5 rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-cyan-300 ${focusDark}`}
+                className={`mt-2 rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-cyan-300 ${focusDark}`}
               >
                 Ver plantilla
               </Link>
@@ -697,11 +714,27 @@ export default function Home() {
                     {noticias[0].fecha}
                   </p>
 
-                  <h3 className="mt-5 text-[2.3rem] font-black uppercase leading-[0.92] tracking-[-0.055em]">
-                    Partido intenso
-                    <br />
-                    el fin de semana
-                  </h3>
+                  <div className="mt-5">
+                    <h3 className="text-[2.15rem] font-black uppercase leading-[0.9] tracking-[-0.055em]">
+                      Motagua
+                    </h3>
+
+                    <div className="my-3 flex items-center gap-3">
+                      <span className="text-[2.8rem] font-black leading-none tracking-[-0.08em] text-white">
+                        1
+                      </span>
+
+                      <span className="h-px w-8 bg-cyan-300/70" />
+
+                      <span className="text-[2.8rem] font-black leading-none tracking-[-0.08em] text-cyan-300">
+                        0
+                      </span>
+                    </div>
+
+                    <h3 className="text-[2.15rem] font-black uppercase leading-[0.9] tracking-[-0.055em]">
+                      Génesis FC
+                    </h3>
+                  </div>
 
                   <Link
                     href={noticias[0].enlace!}
@@ -749,15 +782,31 @@ export default function Home() {
                     {noticias[0].fecha}
                   </p>
 
-                  <h3 className="mt-6 text-[3.15rem] font-black uppercase leading-[0.92] tracking-[-0.055em] xl:text-[3.7rem]">
-                    Partido intenso
-                    <br />
-                    el fin de semana
-                  </h3>
+                  <div className="mt-6">
+                    <h3 className="text-[3rem] font-black uppercase leading-[0.88] tracking-[-0.055em] xl:text-[3.55rem]">
+                      Motagua
+                    </h3>
+
+                    <div className="my-4 flex items-center gap-4">
+                      <span className="text-[4.7rem] font-black leading-none tracking-[-0.09em] text-white xl:text-[5.3rem]">
+                        1
+                      </span>
+
+                      <span className="h-px w-12 bg-cyan-300/70 xl:w-16" />
+
+                      <span className="text-[4.7rem] font-black leading-none tracking-[-0.09em] text-cyan-300 xl:text-[5.3rem]">
+                        0
+                      </span>
+                    </div>
+
+                    <h3 className="text-[3rem] font-black uppercase leading-[0.88] tracking-[-0.055em] xl:text-[3.55rem]">
+                      Génesis FC
+                    </h3>
+                  </div>
 
                   <p className="mt-6 max-w-[460px] text-sm leading-7 text-white/45">
-                    Génesis FC visita a Motagua en un duelo que promete
-                    intensidad, historia y mucho en juego.
+                    Motagua se quedó con los tres puntos tras imponerse 1-0.
+                    Rodrigo de Oliveira marcó el único gol del encuentro.
                   </p>
                 </div>
 
@@ -855,7 +904,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-[1500px] px-4 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
           <div className="text-center">
             <p className="text-[8px] font-black uppercase tracking-[0.28em] text-cyan-300">
-              Liga Nacional · Jornada 7
+              Liga Nacional · Jornada 8
             </p>
 
             <h2
@@ -866,23 +915,23 @@ export default function Home() {
             </h2>
 
             <p className="mt-3 text-[10px] text-white/45 sm:text-sm">
-              Sábado 12 de septiembre · 7:00 PM
+              Sábado 19 de septiembre · 3:00 PM
             </p>
           </div>
 
           <CuentaRegresiva />
 
           <Link
-            href="/partidos/motagua-vs-genesis"
-            aria-label="Abrir centro del partido Motagua contra Génesis FC"
+            href="/partidos/genesis-vs-olancho"
+            aria-label="Ver próximo partido Génesis FC contra Olancho FC"
             className={`group mx-auto mt-14 block max-w-[1100px] rounded-[30px] border border-white/10 bg-white/[0.035] px-4 py-8 transition duration-300 hover:border-cyan-300/30 hover:bg-white/[0.055] sm:px-8 sm:py-10 ${focusDark}`}
           >
             <div className="grid grid-cols-[1fr_48px_1fr] items-center gap-2 sm:grid-cols-[1fr_120px_1fr]">
               <div className="text-center">
                 <div className="relative mx-auto h-24 w-24 transition duration-500 group-hover:scale-[1.03] sm:h-48 sm:w-48 lg:h-56 lg:w-56">
                   <Image
-                    src="/motagua.png"
-                    alt="Escudo de Motagua"
+                    src="/genesis.jpg"
+                    alt="Escudo de Génesis FC"
                     fill
                     quality={100}
                     sizes="224px"
@@ -895,7 +944,7 @@ export default function Home() {
                 </p>
 
                 <h3 className="mt-2 text-base font-black uppercase sm:text-3xl">
-                  Motagua
+                  Génesis FC
                 </h3>
               </div>
 
@@ -915,8 +964,8 @@ export default function Home() {
               <div className="text-center">
                 <div className="relative mx-auto h-24 w-24 transition duration-500 group-hover:scale-[1.03] sm:h-48 sm:w-48 lg:h-56 lg:w-56">
                   <Image
-                    src="/genesis.jpg"
-                    alt="Escudo de Génesis FC"
+                    src="/olancho.png"
+                    alt="Escudo de Olancho FC"
                     fill
                     quality={100}
                     sizes="224px"
@@ -929,18 +978,18 @@ export default function Home() {
                 </p>
 
                 <h3 className="mt-2 text-base font-black uppercase sm:text-3xl">
-                  Génesis FC
+                  Olancho FC
                 </h3>
               </div>
             </div>
 
             <div className="mt-8 border-t border-white/10 pt-6 text-center">
               <p className="text-[9px] text-white/35 sm:text-xs">
-                Estadio Carlos Miranda · Comayagua, Honduras
+                Estadio Roberto Suazo Córdova · La Paz, Honduras
               </p>
 
               <div className="mt-5 inline-flex items-center gap-3 rounded-full bg-cyan-300 px-6 py-3 text-[7px] font-black uppercase tracking-[0.15em] text-[#06142d] transition group-hover:bg-white sm:text-[8px]">
-                Centro del partido
+                Siguiente partido
                 <span aria-hidden="true">
                   →
                 </span>
@@ -950,10 +999,10 @@ export default function Home() {
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              href="/partidos/motagua-vs-genesis"
+              href="/partidos/genesis-vs-olancho"
               className={`inline-flex w-full items-center justify-center rounded-full bg-cyan-300 px-7 py-4 text-[8px] font-black uppercase tracking-[0.15em] text-[#05142f] transition duration-300 hover:bg-white sm:w-auto ${focusDark}`}
             >
-              Centro del partido →
+              Ver siguiente partido →
             </Link>
 
             <Link
@@ -1000,8 +1049,12 @@ export default function Home() {
 
               <div
                 className="mt-4 flex items-center gap-3"
-                aria-label="Últimos cuatro resultados: victoria, derrota, empate y victoria"
+                aria-label="Últimos cuatro resultados: derrota, victoria, derrota y empate"
               >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/15 text-[9px] font-black text-red-300">
+                  D
+                </span>
+
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-[9px] font-black text-emerald-300">
                   V
                 </span>
@@ -1013,14 +1066,10 @@ export default function Home() {
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-[9px] font-black text-white/70">
                   E
                 </span>
-
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-[9px] font-black text-emerald-300">
-                  V
-                </span>
               </div>
 
               <p className="mt-4 text-[8px] font-black uppercase tracking-[0.15em] text-cyan-300">
-                2 victorias · 1 empate · 1 derrota
+                1 victoria · 1 empate · 2 derrotas
               </p>
             </div>
           </div>
@@ -1162,7 +1211,7 @@ export default function Home() {
           <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-[22px] bg-[#06142d] p-6 text-white">
               <p className="text-4xl font-black text-cyan-300">
-                7
+                4
               </p>
 
               <p className="mt-2 text-[7px] font-black uppercase tracking-[0.2em] text-white/35">
@@ -1172,7 +1221,7 @@ export default function Home() {
 
             <div className="rounded-[22px] bg-white p-6">
               <p className="text-4xl font-black">
-                3
+                4
               </p>
 
               <p className="mt-2 text-[7px] font-black uppercase tracking-[0.2em] text-black/35">
@@ -1182,7 +1231,7 @@ export default function Home() {
 
             <div className="rounded-[22px] bg-white p-6">
               <p className="text-4xl font-black">
-                +4
+                0
               </p>
 
               <p className="mt-2 text-[7px] font-black uppercase tracking-[0.2em] text-black/35">
@@ -1498,10 +1547,10 @@ export default function Home() {
                 </Link>
 
                 <Link
-                  href="/partidos/motagua-vs-genesis"
+                  href="/partidos/genesis-vs-olancho"
                   className={`text-xs text-white/55 ${focusDark}`}
                 >
-                  Centro del partido
+                  Siguiente partido
                 </Link>
               </nav>
             </div>
