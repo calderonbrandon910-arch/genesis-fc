@@ -764,9 +764,53 @@ function FormaEquipo({
     resultados: Resultado[];
 }) {
     return (
-        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_70px_rgba(6,20,45,0.06)]">
-            <div className="flex flex-col gap-5 border-b border-black/[0.07] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-                <div className="flex items-center gap-4">
+        <article className="w-full overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_70px_rgba(6,20,45,0.06)]">
+            {/* CABECERA */}
+            <div className="border-b border-black/[0.07] px-4 py-6 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-8">
+                {/* MÓVIL: todo perfectamente centrado */}
+                <div className="flex flex-col items-center text-center sm:hidden">
+                    <div className="relative h-14 w-14">
+                        <Image
+                            src={logo}
+                            alt={equipo}
+                            fill
+                            quality={100}
+                            sizes="56px"
+                            className="object-contain"
+                        />
+                    </div>
+
+                    <p className="mt-3 text-[7px] font-black uppercase tracking-[0.25em] text-[#168cab]">
+                        {subtitulo}
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-black uppercase tracking-[-0.04em]">
+                        {equipo}
+                    </h3>
+
+                    <div className="mt-5 flex w-full flex-col items-center justify-center">
+                        <p className="mb-3 text-center text-[6px] font-black uppercase tracking-[0.18em] text-black/25">
+                            Últimos 4
+                        </p>
+
+                        <div className="flex items-center justify-center gap-2">
+                            {resultados.map(
+                                (
+                                    item,
+                                    index
+                                ) => (
+                                    <EstadoForma
+                                        key={`${item.fecha}-${index}`}
+                                        estado={item.estado}
+                                    />
+                                )
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* TABLET / PC */}
+                <div className="hidden items-center gap-4 sm:flex">
                     <div className="relative h-16 w-16 shrink-0">
                         <Image
                             src={logo}
@@ -778,20 +822,20 @@ function FormaEquipo({
                         />
                     </div>
 
-                    <div>
+                    <div className="min-w-0 text-left">
                         <p className="text-[7px] font-black uppercase tracking-[0.25em] text-[#168cab]">
                             {subtitulo}
                         </p>
 
-                        <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">
+                        <h3 className="mt-2 text-3xl font-black uppercase tracking-[-0.04em]">
                             {equipo}
                         </h3>
                     </div>
                 </div>
 
-                <div>
-                    <p className="mb-3 text-[6px] font-black uppercase tracking-[0.18em] text-black/25">
-                        Últimos 2
+                <div className="hidden flex-col items-start sm:flex">
+                    <p className="mb-3 text-left text-[6px] font-black uppercase tracking-[0.18em] text-black/25">
+                        Últimos 4
                     </p>
 
                     <div className="flex gap-2">
@@ -810,52 +854,119 @@ function FormaEquipo({
                 </div>
             </div>
 
+            {/* PARTIDOS */}
             {resultados.map(
                 (
                     resultado
                 ) => (
                     <div
                         key={`${resultado.fecha}-${resultado.local}-${resultado.visitante}`}
-                        className="grid grid-cols-[52px_minmax(0,1fr)_58px_minmax(0,1fr)] items-center gap-2 border-b border-black/[0.06] px-3 py-5 last:border-b-0 sm:grid-cols-[70px_minmax(0,1fr)_70px_minmax(0,1fr)] sm:gap-4 sm:px-6"
+                        className="border-b border-black/[0.06] px-4 py-5 last:border-b-0 sm:px-6 sm:py-6"
                     >
-                        <p className="text-[6px] font-black uppercase tracking-[0.12em] text-black/30">
+                        <p className="mb-4 text-center text-[6px] font-black uppercase tracking-[0.14em] text-black/30 sm:mb-5 sm:text-left">
                             {resultado.fecha}
                         </p>
 
-                        <div className="flex min-w-0 items-center justify-end gap-2">
-                            <p className="truncate text-right text-[7px] font-black uppercase sm:text-[10px]">
-                                {resultado.local}
-                            </p>
+                        {/* MÓVIL */}
+                        <div className="grid w-full grid-cols-3 items-center sm:hidden">
+                            <div className="flex min-w-0 flex-col items-center justify-center text-center">
+                                <div className="relative h-11 w-11">
+                                    <Image
+                                        src={resultado.logoLocal}
+                                        alt={resultado.local}
+                                        fill
+                                        quality={100}
+                                        sizes="44px"
+                                        className="object-contain"
+                                    />
+                                </div>
 
-                            <Logo
-                                src={resultado.logoLocal}
-                                alt={resultado.local}
-                            />
+                                <p className="mt-2 max-w-[92px] break-words text-[6px] font-black uppercase leading-[1.15]">
+                                    {resultado.local}
+                                </p>
+                            </div>
+
+                            <div className="mx-auto flex h-12 w-[64px] items-center justify-center gap-1 rounded-[13px] bg-[#06142d] text-white">
+                                <span className="text-lg font-black tabular-nums">
+                                    {resultado.golesLocal}
+                                </span>
+
+                                <span className="text-white/25">
+                                    —
+                                </span>
+
+                                <span className="text-lg font-black tabular-nums">
+                                    {resultado.golesVisitante}
+                                </span>
+                            </div>
+
+                            <div className="flex min-w-0 flex-col items-center justify-center text-center">
+                                <div className="relative h-11 w-11">
+                                    <Image
+                                        src={resultado.logoVisitante}
+                                        alt={resultado.visitante}
+                                        fill
+                                        quality={100}
+                                        sizes="44px"
+                                        className="object-contain"
+                                    />
+                                </div>
+
+                                <p className="mt-2 max-w-[92px] break-words text-[6px] font-black uppercase leading-[1.15]">
+                                    {resultado.visitante}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1 rounded-[11px] bg-[#06142d] px-1 py-2 text-white">
-                            <span className="font-black">
-                                {resultado.golesLocal}
-                            </span>
+                        {/* TABLET / PC */}
+                        <div className="hidden w-full grid-cols-[minmax(0,1fr)_78px_minmax(0,1fr)] items-center gap-4 sm:grid">
+                            <div className="flex min-w-0 items-center justify-end gap-3 text-right">
+                                <p className="min-w-0 break-words text-[10px] font-black uppercase leading-tight">
+                                    {resultado.local}
+                                </p>
 
-                            <span className="text-white/25">
-                                —
-                            </span>
+                                <div className="relative h-10 w-10 shrink-0">
+                                    <Image
+                                        src={resultado.logoLocal}
+                                        alt={resultado.local}
+                                        fill
+                                        quality={100}
+                                        sizes="40px"
+                                        className="object-contain"
+                                    />
+                                </div>
+                            </div>
 
-                            <span className="font-black">
-                                {resultado.golesVisitante}
-                            </span>
-                        </div>
+                            <div className="flex items-center justify-center gap-1 rounded-[11px] bg-[#06142d] px-2 py-2 text-white">
+                                <span className="text-base font-black tabular-nums">
+                                    {resultado.golesLocal}
+                                </span>
 
-                        <div className="flex min-w-0 items-center gap-2">
-                            <Logo
-                                src={resultado.logoVisitante}
-                                alt={resultado.visitante}
-                            />
+                                <span className="text-white/25">
+                                    —
+                                </span>
 
-                            <p className="truncate text-[7px] font-black uppercase sm:text-[10px]">
-                                {resultado.visitante}
-                            </p>
+                                <span className="text-base font-black tabular-nums">
+                                    {resultado.golesVisitante}
+                                </span>
+                            </div>
+
+                            <div className="flex min-w-0 items-center justify-start gap-3 text-left">
+                                <div className="relative h-10 w-10 shrink-0">
+                                    <Image
+                                        src={resultado.logoVisitante}
+                                        alt={resultado.visitante}
+                                        fill
+                                        quality={100}
+                                        sizes="40px"
+                                        className="object-contain"
+                                    />
+                                </div>
+
+                                <p className="min-w-0 break-words text-[10px] font-black uppercase leading-tight">
+                                    {resultado.visitante}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 )
@@ -2675,7 +2786,7 @@ export default function GenesisVsOlanchoPage() {
                         </h2>
 
                         <p className="mt-4 max-w-[620px] text-xs leading-6 text-black/40">
-                            Los dos resultados más recientes de cada equipo antes del duelo en La Paz.
+                            Los cuatro resultados más recientes de cada equipo antes del duelo en La Paz.
                         </p>
                     </div>
 
