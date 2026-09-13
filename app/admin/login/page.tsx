@@ -1,21 +1,75 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+    FormEvent,
+    useEffect,
+    useState,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "../../../lib/supabase/client";
 
+/* =========================================================
+   DESTINO DESPUÉS DEL LOGIN
+========================================================= */
+
+function obtenerDestinoAdmin() {
+    if (typeof window === "undefined") {
+        return "/admin/pedidos";
+    }
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const next =
+        params.get("next");
+
+    const destinosPermitidos = [
+        "/admin/live",
+        "/admin/pedidos",
+    ];
+
+    if (
+        next &&
+        destinosPermitidos.includes(next)
+    ) {
+        return next;
+    }
+
+    return "/admin/pedidos";
+}
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
 export default function AdminLoginPage() {
     const router = useRouter();
 
-    const [correo, setCorreo] = useState("");
-    const [password, setPassword] = useState("");
+    const [correo, setCorreo] =
+        useState("");
 
-    const [cargando, setCargando] = useState(true);
-    const [iniciandoSesion, setIniciandoSesion] =
-        useState(false);
+    const [password, setPassword] =
+        useState("");
 
-    const [error, setError] = useState("");
+    const [
+        cargando,
+        setCargando,
+    ] = useState(true);
+
+    const [
+        iniciandoSesion,
+        setIniciandoSesion,
+    ] = useState(false);
+
+    const [error, setError] =
+        useState("");
+
+    /* =====================================================
+       COMPROBAR SESIÓN EXISTENTE
+    ===================================================== */
 
     useEffect(() => {
         let activo = true;
@@ -23,23 +77,37 @@ export default function AdminLoginPage() {
         async function comprobarSesion() {
             try {
                 const {
-                    data: { session },
-                } = await supabase.auth.getSession();
+                    data: {
+                        session,
+                    },
+                } =
+                    await supabase.auth.getSession();
 
                 if (!activo) {
                     return;
                 }
 
                 if (session) {
-                    router.replace("/admin/pedidos");
+                    const destino =
+                        obtenerDestinoAdmin();
+
+                    router.replace(
+                        destino
+                    );
+
                     return;
                 }
             } catch {
-                // Si no se puede comprobar la sesión,
-                // simplemente dejamos disponible el login.
+                /*
+                 * Si no se puede comprobar
+                 * la sesión, dejamos
+                 * disponible el login.
+                 */
             } finally {
                 if (activo) {
-                    setCargando(false);
+                    setCargando(
+                        false
+                    );
                 }
             }
         }
@@ -51,6 +119,10 @@ export default function AdminLoginPage() {
         };
     }, [router]);
 
+    /* =====================================================
+       INICIAR SESIÓN
+    ===================================================== */
+
     async function iniciarSesion(
         event: FormEvent<HTMLFormElement>
     ) {
@@ -61,16 +133,25 @@ export default function AdminLoginPage() {
         }
 
         const correoLimpio =
-            correo.trim().toLowerCase();
+            correo
+                .trim()
+                .toLowerCase();
 
-        if (!correoLimpio || !password) {
+        if (
+            !correoLimpio ||
+            !password
+        ) {
             setError(
                 "Ingresa tu correo y contraseña."
             );
+
             return;
         }
 
-        setIniciandoSesion(true);
+        setIniciandoSesion(
+            true
+        );
+
         setError("");
 
         try {
@@ -78,10 +159,13 @@ export default function AdminLoginPage() {
                 data,
                 error: loginError,
             } =
-                await supabase.auth.signInWithPassword({
-                    email: correoLimpio,
-                    password,
-                });
+                await supabase.auth.signInWithPassword(
+                    {
+                        email:
+                            correoLimpio,
+                        password,
+                    }
+                );
 
             if (
                 loginError ||
@@ -90,19 +174,32 @@ export default function AdminLoginPage() {
                 setError(
                     "Correo o contraseña incorrectos."
                 );
+
                 return;
             }
 
-            router.replace("/admin/pedidos");
+            const destino =
+                obtenerDestinoAdmin();
+
+            router.replace(
+                destino
+            );
+
             router.refresh();
         } catch {
             setError(
                 "No se pudo iniciar sesión. Intenta nuevamente."
             );
         } finally {
-            setIniciandoSesion(false);
+            setIniciandoSesion(
+                false
+            );
         }
     }
+
+    /* =====================================================
+       CARGANDO
+    ===================================================== */
 
     if (cargando) {
         return (
@@ -113,12 +210,17 @@ export default function AdminLoginPage() {
                     </p>
 
                     <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-white/50">
-                        Verificando acceso...
+                        Verificando
+                        acceso...
                     </p>
                 </div>
             </main>
         );
     }
+
+    /* =====================================================
+       LOGIN
+    ===================================================== */
 
     return (
         <main className="flex min-h-screen items-center justify-center bg-[#06142d] px-5 py-12 text-white">
@@ -139,12 +241,16 @@ export default function AdminLoginPage() {
                     </h1>
 
                     <p className="mt-4 text-sm leading-6 text-white/40">
-                        Acceso privado al panel administrativo.
+                        Acceso privado
+                        al panel
+                        administrativo.
                     </p>
                 </div>
 
                 <form
-                    onSubmit={iniciarSesion}
+                    onSubmit={
+                        iniciarSesion
+                    }
                     className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-xl sm:p-8"
                 >
                     <div>
@@ -158,10 +264,16 @@ export default function AdminLoginPage() {
                         <input
                             id="correo"
                             type="email"
-                            value={correo}
-                            onChange={(event) =>
+                            value={
+                                correo
+                            }
+                            onChange={(
+                                event
+                            ) =>
                                 setCorreo(
-                                    event.target.value
+                                    event
+                                        .target
+                                        .value
                                 )
                             }
                             autoComplete="email"
@@ -184,10 +296,16 @@ export default function AdminLoginPage() {
                         <input
                             id="password"
                             type="password"
-                            value={password}
-                            onChange={(event) =>
+                            value={
+                                password
+                            }
+                            onChange={(
+                                event
+                            ) =>
                                 setPassword(
-                                    event.target.value
+                                    event
+                                        .target
+                                        .value
                                 )
                             }
                             autoComplete="current-password"
@@ -202,14 +320,18 @@ export default function AdminLoginPage() {
                     {error && (
                         <div className="mt-5 rounded-[16px] border border-red-400/20 bg-red-500/10 px-4 py-4">
                             <p className="text-xs font-bold leading-5 text-red-200">
-                                {error}
+                                {
+                                    error
+                                }
                             </p>
                         </div>
                     )}
 
                     <button
                         type="submit"
-                        disabled={iniciandoSesion}
+                        disabled={
+                            iniciandoSesion
+                        }
                         className="mt-7 flex w-full items-center justify-center rounded-[16px] bg-cyan-300 px-5 py-4 text-[9px] font-black uppercase tracking-[0.2em] text-[#06142d] transition hover:bg-white disabled:cursor-wait disabled:opacity-50"
                     >
                         {iniciandoSesion
@@ -219,7 +341,9 @@ export default function AdminLoginPage() {
                 </form>
 
                 <p className="mt-7 text-center text-[7px] font-black uppercase tracking-[0.18em] text-white/20">
-                    Acceso restringido · Génesis FC
+                    Acceso
+                    restringido ·
+                    Génesis FC
                 </p>
             </div>
         </main>

@@ -76,6 +76,10 @@ export default function CalendarioPage() {
     (equipo) => equipo.nombre === "Génesis FC"
   )!;
 
+  const proximosPartidos = partidos.filter(
+    (partido) => partido.jornada >= 8
+  );
+
   return (
     <main className="min-h-screen bg-[#f3f3f1] text-[#06142d]">
       {/* =====================================================
@@ -200,12 +204,12 @@ export default function CalendarioPage() {
               </div>
 
               <p className="text-[8px] font-black uppercase tracking-[0.16em] text-black/30">
-                Jornadas 7 — 16
+                Jornadas 8 — 16
               </p>
             </div>
 
             <div className="mt-7 space-y-4">
-              {partidos.map((partido, index) => (
+              {proximosPartidos.map((partido, index) => (
                 <article
                   key={partido.jornada}
                   className={`overflow-hidden rounded-[24px] border bg-white shadow-[0_18px_60px_rgba(6,20,45,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(6,20,45,0.09)] sm:rounded-[28px] ${

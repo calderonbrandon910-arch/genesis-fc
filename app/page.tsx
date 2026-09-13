@@ -419,7 +419,7 @@ export default function Home() {
 
           <div className="hidden items-center gap-3 lg:flex">
             <Link
-              href="/admin/live"
+              href="/partidos/genesis-vs-olancho"
               className={`rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] px-6 py-4 text-[8px] font-black uppercase tracking-[0.16em] text-cyan-300 transition hover:bg-cyan-300 hover:text-[#020817] ${focusDark}`}
             >
               Live Ops
@@ -494,7 +494,7 @@ export default function Home() {
               )}
 
               <Link
-                href="/admin/live"
+                href="/partidos/genesis-vs-olancho"
                 onClick={() =>
                   setMenuOpen(false)
                 }

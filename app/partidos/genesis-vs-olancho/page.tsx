@@ -245,6 +245,61 @@ const resultadosGenesis: Resultado[] = [
 ];
 
 /* =========================================================
+   FORMA RECIENTE OLANCHO FC
+========================================================= */
+
+const resultadosOlancho: Resultado[] = [
+    {
+        fecha: "12 SEP",
+        local: "Olancho FC",
+        logoLocal: "/olancho.png",
+        golesLocal: 1,
+
+        visitante: "Real España",
+        logoVisitante: "/real-espana.jpg",
+        golesVisitante: 1,
+
+        estado: "E",
+    },
+    {
+        fecha: "04 SEP",
+        local: "CD Choloma",
+        logoLocal: "/choloma.png",
+        golesLocal: 0,
+
+        visitante: "Olancho FC",
+        logoVisitante: "/olancho.png",
+        golesVisitante: 0,
+
+        estado: "E",
+    },
+    {
+        fecha: "29 AGO",
+        local: "Motagua",
+        logoLocal: "/motagua.png",
+        golesLocal: 2,
+
+        visitante: "Olancho FC",
+        logoVisitante: "/olancho.png",
+        golesVisitante: 1,
+
+        estado: "D",
+    },
+    {
+        fecha: "23 AGO",
+        local: "Olancho FC",
+        logoLocal: "/olancho.png",
+        golesLocal: 1,
+
+        visitante: "Olimpia",
+        logoVisitante: "/olimpia.png",
+        golesVisitante: 1,
+
+        estado: "E",
+    },
+];
+
+/* =========================================================
    HELPERS
 ========================================================= */
 
@@ -697,15 +752,25 @@ function EstadoForma({
    FORMA GÉNESIS
 ========================================================= */
 
-function FormaGenesis() {
+function FormaEquipo({
+    equipo,
+    subtitulo,
+    logo,
+    resultados,
+}: {
+    equipo: string;
+    subtitulo: string;
+    logo: string;
+    resultados: Resultado[];
+}) {
     return (
         <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_70px_rgba(6,20,45,0.06)]">
             <div className="flex flex-col gap-5 border-b border-black/[0.07] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
                 <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16">
+                    <div className="relative h-16 w-16 shrink-0">
                         <Image
-                            src="/genesis.jpg"
-                            alt="Génesis FC"
+                            src={logo}
+                            alt={equipo}
                             fill
                             quality={100}
                             sizes="64px"
@@ -715,31 +780,29 @@ function FormaGenesis() {
 
                     <div>
                         <p className="text-[7px] font-black uppercase tracking-[0.25em] text-[#168cab]">
-                            Los caninos
+                            {subtitulo}
                         </p>
 
                         <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">
-                            Génesis FC
+                            {equipo}
                         </h3>
                     </div>
                 </div>
 
                 <div>
                     <p className="mb-3 text-[6px] font-black uppercase tracking-[0.18em] text-black/25">
-                        Últimos 4
+                        Últimos 2
                     </p>
 
                     <div className="flex gap-2">
-                        {resultadosGenesis.map(
+                        {resultados.map(
                             (
                                 item,
                                 index
                             ) => (
                                 <EstadoForma
                                     key={`${item.fecha}-${index}`}
-                                    estado={
-                                        item.estado
-                                    }
+                                    estado={item.estado}
                                 />
                             )
                         )}
@@ -747,7 +810,7 @@ function FormaGenesis() {
                 </div>
             </div>
 
-            {resultadosGenesis.map(
+            {resultados.map(
                 (
                     resultado
                 ) => (
@@ -756,33 +819,23 @@ function FormaGenesis() {
                         className="grid grid-cols-[52px_minmax(0,1fr)_58px_minmax(0,1fr)] items-center gap-2 border-b border-black/[0.06] px-3 py-5 last:border-b-0 sm:grid-cols-[70px_minmax(0,1fr)_70px_minmax(0,1fr)] sm:gap-4 sm:px-6"
                     >
                         <p className="text-[6px] font-black uppercase tracking-[0.12em] text-black/30">
-                            {
-                                resultado.fecha
-                            }
+                            {resultado.fecha}
                         </p>
 
                         <div className="flex min-w-0 items-center justify-end gap-2">
                             <p className="truncate text-right text-[7px] font-black uppercase sm:text-[10px]">
-                                {
-                                    resultado.local
-                                }
+                                {resultado.local}
                             </p>
 
                             <Logo
-                                src={
-                                    resultado.logoLocal
-                                }
-                                alt={
-                                    resultado.local
-                                }
+                                src={resultado.logoLocal}
+                                alt={resultado.local}
                             />
                         </div>
 
                         <div className="flex items-center justify-center gap-1 rounded-[11px] bg-[#06142d] px-1 py-2 text-white">
                             <span className="font-black">
-                                {
-                                    resultado.golesLocal
-                                }
+                                {resultado.golesLocal}
                             </span>
 
                             <span className="text-white/25">
@@ -790,26 +843,18 @@ function FormaGenesis() {
                             </span>
 
                             <span className="font-black">
-                                {
-                                    resultado.golesVisitante
-                                }
+                                {resultado.golesVisitante}
                             </span>
                         </div>
 
                         <div className="flex min-w-0 items-center gap-2">
                             <Logo
-                                src={
-                                    resultado.logoVisitante
-                                }
-                                alt={
-                                    resultado.visitante
-                                }
+                                src={resultado.logoVisitante}
+                                alt={resultado.visitante}
                             />
 
                             <p className="truncate text-[7px] font-black uppercase sm:text-[10px]">
-                                {
-                                    resultado.visitante
-                                }
+                                {resultado.visitante}
                             </p>
                         </div>
                     </div>
@@ -2616,22 +2661,38 @@ export default function GenesisVsOlanchoPage() {
             ================================================= */}
 
             <section className="bg-[#ececea] px-4 py-16 sm:px-8 sm:py-24 lg:px-12">
-                <div className="mx-auto max-w-[1000px]">
+                <div className="mx-auto max-w-[1300px]">
                     <div className="border-b border-black/10 pb-7">
                         <p className="text-[7px] font-black uppercase tracking-[0.27em] text-[#168cab]">
                             Antes del partido
                         </p>
 
                         <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">
-                            Forma de Génesis
+                            Forma reciente
                             <span className="text-[#168cab]">
                                 .
                             </span>
                         </h2>
+
+                        <p className="mt-4 max-w-[620px] text-xs leading-6 text-black/40">
+                            Los dos resultados más recientes de cada equipo antes del duelo en La Paz.
+                        </p>
                     </div>
 
-                    <div className="mt-8">
-                        <FormaGenesis />
+                    <div className="mt-8 grid gap-6 xl:grid-cols-2">
+                        <FormaEquipo
+                            equipo="Génesis FC"
+                            subtitulo="Los caninos"
+                            logo="/genesis.jpg"
+                            resultados={resultadosGenesis}
+                        />
+
+                        <FormaEquipo
+                            equipo="Olancho FC"
+                            subtitulo="Los potros"
+                            logo="/olancho.png"
+                            resultados={resultadosOlancho}
+                        />
                     </div>
                 </div>
             </section>
