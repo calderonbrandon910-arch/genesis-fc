@@ -1,0 +1,2728 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
+/* =========================================================
+   GÉNESIS FC
+   MATCH CENTER
+   GÉNESIS FC vs OLANCHO FC
+   CONECTADO A GÉNESIS LIVE OPS
+========================================================= */
+
+const MATCH_SLUG =
+    "genesis-vs-olancho-2026-09-19";
+
+/* =========================================================
+   TIPOS
+========================================================= */
+
+type MatchStatus =
+    | "pre_match"
+    | "first_half"
+    | "halftime"
+    | "second_half"
+    | "paused"
+    | "finished";
+
+type EventType =
+    | "goal"
+    | "yellow_card"
+    | "red_card"
+    | "substitution"
+    | "save"
+    | "chance"
+    | "penalty"
+    | "own_goal"
+    | "var"
+    | "injury"
+    | "kickoff"
+    | "halftime"
+    | "second_half"
+    | "fulltime"
+    | "note";
+
+type LiveMatch = {
+    id: string;
+    slug: string;
+
+    competition: string;
+    season: string;
+    matchday: number | null;
+
+    home_team: string;
+    away_team: string;
+
+    home_logo: string | null;
+    away_logo: string | null;
+
+    stadium: string | null;
+    city: string | null;
+
+    scheduled_at: string;
+
+    status: MatchStatus;
+
+    home_score: number;
+    away_score: number;
+
+    current_period: number;
+
+    period_started_at: string | null;
+    paused_at: string | null;
+
+    elapsed_seconds: number;
+
+    added_time_first_half: number;
+    added_time_second_half: number;
+
+    is_live: boolean;
+
+    server_elapsed_seconds?: number;
+    server_time?: string;
+
+    created_at: string;
+    updated_at: string;
+};
+
+type LiveEvent = {
+    id: string;
+    match_id: string;
+
+    minute: number;
+    second: number;
+
+    period: number;
+
+    event_type: EventType;
+
+    team: string | null;
+
+    player_name: string | null;
+    player_out: string | null;
+    player_in: string | null;
+
+    title: string | null;
+    description: string | null;
+
+    created_at: string;
+};
+
+type LiveStat = {
+    id: string;
+    match_id: string;
+
+    team: string;
+
+    shots: number;
+    shots_on_target: number;
+    corners: number;
+    fouls: number;
+    offsides: number;
+    yellow_cards: number;
+    red_cards: number;
+    saves: number;
+
+    possession: number | null;
+
+    updated_at: string;
+};
+
+type LiveLineup = {
+    id: string;
+    match_id: string;
+
+    team: string;
+
+    player_name: string;
+
+    shirt_number: number | null;
+
+    position: string | null;
+
+    is_starter: boolean;
+    is_captain: boolean;
+
+    sort_order: number;
+
+    created_at: string;
+};
+
+type LiveResponse = {
+    ok: boolean;
+
+    error?: string;
+
+    match?: LiveMatch;
+
+    events?: LiveEvent[];
+
+    stats?: LiveStat[];
+
+    lineups?: LiveLineup[];
+};
+
+type Countdown = {
+    dias: number;
+    horas: number;
+    minutos: number;
+    segundos: number;
+};
+
+type Resultado = {
+    fecha: string;
+
+    local: string;
+    logoLocal: string;
+    golesLocal: number;
+
+    visitante: string;
+    logoVisitante: string;
+    golesVisitante: number;
+
+    estado: "V" | "E" | "D";
+};
+
+/* =========================================================
+   FORMA RECIENTE GÉNESIS
+========================================================= */
+
+const resultadosGenesis: Resultado[] = [
+    {
+        fecha: "12 SEP",
+        local: "Motagua",
+        logoLocal: "/motagua.png",
+        golesLocal: 1,
+
+        visitante: "Génesis FC",
+        logoVisitante: "/genesis.jpg",
+        golesVisitante: 0,
+
+        estado: "D",
+    },
+    {
+        fecha: "06 SEP",
+        local: "Juticalpa",
+        logoLocal: "/juti.png",
+        golesLocal: 0,
+
+        visitante: "Génesis FC",
+        logoVisitante: "/genesis.jpg",
+        golesVisitante: 3,
+
+        estado: "V",
+    },
+    {
+        fecha: "29 AGO",
+        local: "Génesis FC",
+        logoLocal: "/genesis.jpg",
+        golesLocal: 1,
+
+        visitante: "Marathón",
+        logoVisitante: "/marathon.png",
+        golesVisitante: 2,
+
+        estado: "D",
+    },
+    {
+        fecha: "22 AGO",
+        local: "Atlético Independiente",
+        logoLocal: "/independiente.png",
+        golesLocal: 1,
+
+        visitante: "Génesis FC",
+        logoVisitante: "/genesis.jpg",
+        golesVisitante: 1,
+
+        estado: "E",
+    },
+];
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function dos(
+    value: number
+) {
+    return String(
+        value
+    ).padStart(
+        2,
+        "0"
+    );
+}
+
+function formatClock(
+    totalSeconds: number
+) {
+    const segundos =
+        Math.max(
+            0,
+            Math.floor(
+                totalSeconds
+            )
+        );
+
+    const minutos =
+        Math.floor(
+            segundos / 60
+        );
+
+    return `${dos(
+        minutos
+    )}:${dos(
+        segundos % 60
+    )}`;
+}
+
+/* =========================================================
+   MINUTO FUTBOLÍSTICO
+========================================================= */
+
+function minutoFutbolistico(
+    totalSeconds: number,
+    period: number
+) {
+    const segundos =
+        Math.max(
+            0,
+            Math.floor(
+                totalSeconds
+            )
+        );
+
+    const minuto =
+        Math.floor(
+            segundos / 60
+        );
+
+    /*
+     * 1T
+     *
+     * 44:59 -> 44'
+     * 45:00 -> 45+1'
+     * 46:00 -> 45+2'
+     */
+
+    if (
+        period === 1 &&
+        minuto >= 45
+    ) {
+        const agregado =
+            minuto - 44;
+
+        return `45+${agregado}'`;
+    }
+
+    /*
+     * 2T
+     *
+     * 89:59 -> 89'
+     * 90:00 -> 90+1'
+     * 91:00 -> 90+2'
+     */
+
+    if (
+        period === 2 &&
+        minuto >= 90
+    ) {
+        const agregado =
+            minuto - 89;
+
+        return `90+${agregado}'`;
+    }
+
+    return `${minuto}'`;
+}
+
+/* =========================================================
+   MINUTO PARA EVENTOS
+========================================================= */
+
+function minutoEvento(
+    minute: number,
+    period: number
+) {
+    if (
+        period === 1 &&
+        minute >= 45
+    ) {
+        return `45+${Math.max(
+            1,
+            minute - 44
+        )}'`;
+    }
+
+    if (
+        period === 2 &&
+        minute >= 90
+    ) {
+        return `90+${Math.max(
+            1,
+            minute - 89
+        )}'`;
+    }
+
+    return `${minute}'`;
+}
+
+function statusLabel(
+    status: MatchStatus
+) {
+    if (
+        status ===
+        "first_half"
+    ) {
+        return "EN VIVO · 1T";
+    }
+
+    if (
+        status ===
+        "halftime"
+    ) {
+        return "DESCANSO";
+    }
+
+    if (
+        status ===
+        "second_half"
+    ) {
+        return "EN VIVO · 2T";
+    }
+
+    if (
+        status ===
+        "paused"
+    ) {
+        return "PARTIDO PAUSADO";
+    }
+
+    if (
+        status ===
+        "finished"
+    ) {
+        return "FINAL";
+    }
+
+    return "PREVIA";
+}
+
+function statusStyles(
+    status: MatchStatus
+) {
+    if (
+        status ===
+            "first_half" ||
+        status ===
+            "second_half"
+    ) {
+        return "border-red-400/30 bg-red-500/15 text-red-300";
+    }
+
+    if (
+        status ===
+            "halftime" ||
+        status ===
+            "paused"
+    ) {
+        return "border-amber-300/30 bg-amber-300/10 text-amber-200";
+    }
+
+    if (
+        status ===
+        "finished"
+    ) {
+        return "border-white/15 bg-white/[0.06] text-white/70";
+    }
+
+    return "border-cyan-300/20 bg-cyan-300/[0.08] text-cyan-300";
+}
+
+function eventName(
+    type: EventType
+) {
+    switch (type) {
+        case "goal":
+            return "Gol";
+
+        case "yellow_card":
+            return "Tarjeta amarilla";
+
+        case "red_card":
+            return "Tarjeta roja";
+
+        case "substitution":
+            return "Cambio";
+
+        case "save":
+            return "Atajada";
+
+        case "chance":
+            return "Ocasión";
+
+        case "penalty":
+            return "Penal";
+
+        case "own_goal":
+            return "Autogol";
+
+        case "var":
+            return "VAR";
+
+        case "injury":
+            return "Lesión";
+
+        case "kickoff":
+            return "Inicio";
+
+        case "halftime":
+            return "Descanso";
+
+        case "second_half":
+            return "Segundo tiempo";
+
+        case "fulltime":
+            return "Final";
+
+        default:
+            return "Actualización";
+    }
+}
+
+function eventIcon(
+    type: EventType
+) {
+    switch (type) {
+        case "goal":
+            return "⚽";
+
+        case "yellow_card":
+            return "🟨";
+
+        case "red_card":
+            return "🟥";
+
+        case "substitution":
+            return "↔";
+
+        case "save":
+            return "GK";
+
+        case "chance":
+            return "◎";
+
+        case "penalty":
+            return "P";
+
+        case "own_goal":
+            return "AG";
+
+        case "var":
+            return "VAR";
+
+        case "injury":
+            return "+";
+
+        case "kickoff":
+            return "▶";
+
+        case "halftime":
+            return "HT";
+
+        case "second_half":
+            return "2T";
+
+        case "fulltime":
+            return "FT";
+
+        default:
+            return "•";
+    }
+}
+
+function eventStyle(
+    type: EventType
+) {
+    if (
+        type ===
+        "goal"
+    ) {
+        return {
+            wrapper:
+                "border-emerald-500/15 bg-emerald-500/[0.045]",
+
+            icon:
+                "border-emerald-500/20 bg-emerald-500/10 text-emerald-700",
+
+            label:
+                "text-emerald-700",
+        };
+    }
+
+    if (
+        type ===
+        "yellow_card"
+    ) {
+        return {
+            wrapper:
+                "border-amber-400/20 bg-amber-400/[0.06]",
+
+            icon:
+                "border-amber-400/30 bg-amber-400/10",
+
+            label:
+                "text-amber-700",
+        };
+    }
+
+    if (
+        type ===
+        "red_card"
+    ) {
+        return {
+            wrapper:
+                "border-red-500/20 bg-red-500/[0.05]",
+
+            icon:
+                "border-red-500/25 bg-red-500/10",
+
+            label:
+                "text-red-700",
+        };
+    }
+
+    if (
+        type ===
+        "save"
+    ) {
+        return {
+            wrapper:
+                "border-cyan-500/15 bg-cyan-500/[0.04]",
+
+            icon:
+                "border-cyan-500/20 bg-cyan-500/10 text-[#168cab]",
+
+            label:
+                "text-[#168cab]",
+        };
+    }
+
+    return {
+        wrapper:
+            "border-black/[0.06] bg-white",
+
+        icon:
+            "border-black/10 bg-black/[0.03] text-[#168cab]",
+
+        label:
+            "text-[#168cab]",
+    };
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+function Logo({
+    src,
+    alt,
+    large = false,
+}: {
+    src: string;
+    alt: string;
+    large?: boolean;
+}) {
+    return (
+        <div
+            className={`relative shrink-0 ${
+                large
+                    ? "h-24 w-24 sm:h-36 sm:w-36 lg:h-44 lg:w-44"
+                    : "h-10 w-10"
+            }`}
+        >
+            <Image
+                src={src}
+                alt={alt}
+                fill
+                quality={100}
+                sizes={
+                    large
+                        ? "176px"
+                        : "40px"
+                }
+                className="object-contain"
+            />
+        </div>
+    );
+}
+
+/* =========================================================
+   ESTADO DE FORMA
+========================================================= */
+
+function EstadoForma({
+    estado,
+}: {
+    estado:
+        | "V"
+        | "E"
+        | "D";
+}) {
+    const styles =
+        estado ===
+        "V"
+            ? "bg-emerald-500 text-white"
+            : estado ===
+                "D"
+              ? "bg-red-500 text-white"
+              : "bg-[#168cab] text-white";
+
+    return (
+        <span
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-[8px] font-black ${styles}`}
+        >
+            {estado}
+        </span>
+    );
+}
+
+/* =========================================================
+   FORMA GÉNESIS
+========================================================= */
+
+function FormaGenesis() {
+    return (
+        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_70px_rgba(6,20,45,0.06)]">
+            <div className="flex flex-col gap-5 border-b border-black/[0.07] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+                <div className="flex items-center gap-4">
+                    <div className="relative h-16 w-16">
+                        <Image
+                            src="/genesis.jpg"
+                            alt="Génesis FC"
+                            fill
+                            quality={100}
+                            sizes="64px"
+                            className="object-contain"
+                        />
+                    </div>
+
+                    <div>
+                        <p className="text-[7px] font-black uppercase tracking-[0.25em] text-[#168cab]">
+                            Los caninos
+                        </p>
+
+                        <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">
+                            Génesis FC
+                        </h3>
+                    </div>
+                </div>
+
+                <div>
+                    <p className="mb-3 text-[6px] font-black uppercase tracking-[0.18em] text-black/25">
+                        Últimos 4
+                    </p>
+
+                    <div className="flex gap-2">
+                        {resultadosGenesis.map(
+                            (
+                                item,
+                                index
+                            ) => (
+                                <EstadoForma
+                                    key={`${item.fecha}-${index}`}
+                                    estado={
+                                        item.estado
+                                    }
+                                />
+                            )
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {resultadosGenesis.map(
+                (
+                    resultado
+                ) => (
+                    <div
+                        key={`${resultado.fecha}-${resultado.local}-${resultado.visitante}`}
+                        className="grid grid-cols-[52px_minmax(0,1fr)_58px_minmax(0,1fr)] items-center gap-2 border-b border-black/[0.06] px-3 py-5 last:border-b-0 sm:grid-cols-[70px_minmax(0,1fr)_70px_minmax(0,1fr)] sm:gap-4 sm:px-6"
+                    >
+                        <p className="text-[6px] font-black uppercase tracking-[0.12em] text-black/30">
+                            {
+                                resultado.fecha
+                            }
+                        </p>
+
+                        <div className="flex min-w-0 items-center justify-end gap-2">
+                            <p className="truncate text-right text-[7px] font-black uppercase sm:text-[10px]">
+                                {
+                                    resultado.local
+                                }
+                            </p>
+
+                            <Logo
+                                src={
+                                    resultado.logoLocal
+                                }
+                                alt={
+                                    resultado.local
+                                }
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-center gap-1 rounded-[11px] bg-[#06142d] px-1 py-2 text-white">
+                            <span className="font-black">
+                                {
+                                    resultado.golesLocal
+                                }
+                            </span>
+
+                            <span className="text-white/25">
+                                —
+                            </span>
+
+                            <span className="font-black">
+                                {
+                                    resultado.golesVisitante
+                                }
+                            </span>
+                        </div>
+
+                        <div className="flex min-w-0 items-center gap-2">
+                            <Logo
+                                src={
+                                    resultado.logoVisitante
+                                }
+                                alt={
+                                    resultado.visitante
+                                }
+                            />
+
+                            <p className="truncate text-[7px] font-black uppercase sm:text-[10px]">
+                                {
+                                    resultado.visitante
+                                }
+                            </p>
+                        </div>
+                    </div>
+                )
+            )}
+        </article>
+    );
+}
+
+/* =========================================================
+   ESTADÍSTICA
+========================================================= */
+
+function StatRow({
+    name,
+    home,
+    away,
+}: {
+    name: string;
+
+    home:
+        | number
+        | null;
+
+    away:
+        | number
+        | null;
+}) {
+    const disponible =
+        home !== null &&
+        away !== null;
+
+    const total =
+        disponible
+            ? home + away
+            : 0;
+
+    const porcentaje =
+        disponible &&
+        total > 0
+            ? (home / total) *
+              100
+            : 50;
+
+    return (
+        <div className="border-b border-black/[0.06] py-5 last:border-b-0">
+            <div className="grid grid-cols-[60px_1fr_60px] items-center gap-4">
+                <p className="text-left text-sm font-black">
+                    {home ?? "—"}
+                </p>
+
+                <p className="text-center text-[7px] font-black uppercase tracking-[0.2em] text-black/35">
+                    {name}
+                </p>
+
+                <p className="text-right text-sm font-black">
+                    {away ?? "—"}
+                </p>
+            </div>
+
+            {disponible && (
+                <div className="mt-3 flex h-1.5 overflow-hidden rounded-full bg-[#168cab]">
+                    <div
+                        className="bg-[#06142d]"
+                        style={{
+                            width:
+                                `${porcentaje}%`,
+                        }}
+                    />
+
+                    <div className="flex-1" />
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* =========================================================
+   JUGADOR
+========================================================= */
+
+function LineupPlayer({
+    player,
+    compact = false,
+}: {
+    player: LiveLineup;
+    compact?: boolean;
+}) {
+    return (
+        <div
+            className={`flex items-center gap-3 border-b border-black/[0.05] last:border-b-0 ${
+                compact
+                    ? "py-2.5"
+                    : "py-3"
+            }`}
+        >
+            <div
+                className={`flex shrink-0 items-center justify-center rounded-full bg-[#06142d] font-black text-white ${
+                    compact
+                        ? "h-8 w-8 text-[7px]"
+                        : "h-9 w-9 text-[8px]"
+                }`}
+            >
+                {player.shirt_number ??
+                    "—"}
+            </div>
+
+            <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                    <p
+                        className={`truncate font-black uppercase ${
+                            compact
+                                ? "text-[9px]"
+                                : "text-[10px]"
+                        }`}
+                    >
+                        {
+                            player.player_name
+                        }
+                    </p>
+
+                    {player.is_captain && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-300 px-1 text-[6px] font-black text-[#2b2000]">
+                            C
+                        </span>
+                    )}
+                </div>
+
+                <p className="mt-1 text-[6px] font-black uppercase tracking-[0.13em] text-black/30">
+                    {player.position ||
+                        "Sin posición"}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+/* =========================================================
+   PLANTEL CONVOCADO
+========================================================= */
+
+function TeamRosterPending({
+    team,
+    logo,
+    players,
+}: {
+    team: string;
+    logo: string;
+    players: LiveLineup[];
+}) {
+    return (
+        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(6,20,45,0.05)]">
+            <div className="border-b border-black/[0.06] bg-[#06142d] p-6 text-white">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="relative h-14 w-14">
+                            <Image
+                                src={
+                                    logo
+                                }
+                                alt={
+                                    team
+                                }
+                                fill
+                                quality={
+                                    100
+                                }
+                                sizes="56px"
+                                className="object-contain"
+                            />
+                        </div>
+
+                        <div>
+                            <p className="text-[6px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                                Plantel convocado
+                            </p>
+
+                            <h3 className="mt-1 text-xl font-black uppercase">
+                                {
+                                    team
+                                }
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div className="rounded-full border border-cyan-300/20 bg-cyan-300/[0.08] px-4 py-2">
+                        <p className="text-[6px] font-black uppercase tracking-[0.16em] text-cyan-300">
+                            XI por confirmar
+                        </p>
+                    </div>
+                </div>
+
+                <p className="mt-5 max-w-[520px] text-[10px] leading-5 text-white/40">
+                    El plantel está registrado para el Match Center. La alineación titular se publicará cuando sea confirmada oficialmente.
+                </p>
+            </div>
+
+            {players.length >
+            0 ? (
+                <div className="p-5">
+                    <div className="mb-4 flex items-center justify-between">
+                        <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                            Jugadores disponibles
+                        </p>
+
+                        <p className="text-[7px] font-black uppercase tracking-[0.15em] text-black/25">
+                            {
+                                players.length
+                            }{" "}
+                            jugadores
+                        </p>
+                    </div>
+
+                    <div className="grid gap-x-6 sm:grid-cols-2">
+                        {players.map(
+                            (
+                                player
+                            ) => (
+                                <LineupPlayer
+                                    key={
+                                        player.id
+                                    }
+                                    player={
+                                        player
+                                    }
+                                    compact
+                                />
+                            )
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="p-8 text-center">
+                    <p className="text-xs font-bold text-black/30">
+                        Plantel pendiente de publicación.
+                    </p>
+                </div>
+            )}
+        </article>
+    );
+}
+
+/* =========================================================
+   ALINEACIÓN OFICIAL
+========================================================= */
+
+function TeamOfficialLineup({
+    team,
+    logo,
+    players,
+}: {
+    team: string;
+    logo: string;
+    players: LiveLineup[];
+}) {
+    const starters =
+        players.filter(
+            (
+                player
+            ) =>
+                player.is_starter
+        );
+
+    const substitutes =
+        players.filter(
+            (
+                player
+            ) =>
+                !player.is_starter
+        );
+
+    return (
+        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_60px_rgba(6,20,45,0.05)]">
+            <div className="border-b border-black/[0.06] p-6">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="relative h-14 w-14">
+                            <Image
+                                src={
+                                    logo
+                                }
+                                alt={
+                                    team
+                                }
+                                fill
+                                quality={
+                                    100
+                                }
+                                sizes="56px"
+                                className="object-contain"
+                            />
+                        </div>
+
+                        <div>
+                            <p className="text-[6px] font-black uppercase tracking-[0.2em] text-emerald-600">
+                                Alineación oficial
+                            </p>
+
+                            <h3 className="mt-1 text-lg font-black uppercase">
+                                {
+                                    team
+                                }
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+                        <p className="text-[7px] font-black uppercase text-emerald-700">
+                            XI 11/11
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid gap-0 sm:grid-cols-2">
+                <div className="border-b border-black/[0.06] p-5 sm:border-b-0 sm:border-r">
+                    <div className="mb-3 flex items-center justify-between">
+                        <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                            En cancha
+                        </p>
+
+                        <span className="text-[7px] font-black text-black/25">
+                            11
+                        </span>
+                    </div>
+
+                    {starters.map(
+                        (
+                            player
+                        ) => (
+                            <LineupPlayer
+                                key={
+                                    player.id
+                                }
+                                player={
+                                    player
+                                }
+                            />
+                        )
+                    )}
+                </div>
+
+                <div className="p-5">
+                    <div className="mb-3 flex items-center justify-between">
+                        <p className="text-[7px] font-black uppercase tracking-[0.2em] text-black/30">
+                            Suplentes
+                        </p>
+
+                        <span className="text-[7px] font-black text-black/25">
+                            {
+                                substitutes.length
+                            }
+                        </span>
+                    </div>
+
+                    {substitutes.length >
+                    0 ? (
+                        substitutes.map(
+                            (
+                                player
+                            ) => (
+                                <LineupPlayer
+                                    key={
+                                        player.id
+                                    }
+                                    player={
+                                        player
+                                    }
+                                />
+                            )
+                        )
+                    ) : (
+                        <p className="py-4 text-xs text-black/30">
+                            Suplentes por confirmar.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </article>
+    );
+}
+
+/* =========================================================
+   BLOQUE INTELIGENTE DE EQUIPO
+========================================================= */
+
+function TeamSquad({
+    team,
+    logo,
+    players,
+}: {
+    team: string;
+    logo: string;
+    players: LiveLineup[];
+}) {
+    const starters =
+        players.filter(
+            (
+                player
+            ) =>
+                player.is_starter
+        );
+
+    const lineupConfirmed =
+        starters.length ===
+        11;
+
+    if (
+        lineupConfirmed
+    ) {
+        return (
+            <TeamOfficialLineup
+                team={
+                    team
+                }
+                logo={
+                    logo
+                }
+                players={
+                    players
+                }
+            />
+        );
+    }
+
+    return (
+        <TeamRosterPending
+            team={
+                team
+            }
+            logo={
+                logo
+            }
+            players={
+                players
+            }
+        />
+    );
+}
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
+export default function GenesisVsOlanchoPage() {
+    const [
+        match,
+        setMatch,
+    ] =
+        useState<LiveMatch | null>(
+            null
+        );
+
+    const [
+        events,
+        setEvents,
+    ] =
+        useState<
+            LiveEvent[]
+        >([]);
+
+    const [
+        stats,
+        setStats,
+    ] =
+        useState<
+            LiveStat[]
+        >([]);
+
+    const [
+        lineups,
+        setLineups,
+    ] =
+        useState<
+            LiveLineup[]
+        >([]);
+
+    const [
+        loading,
+        setLoading,
+    ] =
+        useState(true);
+
+    const [
+        error,
+        setError,
+    ] =
+        useState("");
+
+    const [
+        tick,
+        setTick,
+    ] =
+        useState(
+            Date.now()
+        );
+
+    const [
+        countdown,
+        setCountdown,
+    ] =
+        useState<Countdown>({
+            dias: 0,
+            horas: 0,
+            minutos: 0,
+            segundos: 0,
+        });
+
+    /* =====================================================
+       CARGAR LIVE OPS
+    ===================================================== */
+
+    const cargar =
+        useCallback(
+            async (
+                silencioso =
+                    false
+            ) => {
+                try {
+                    if (
+                        !silencioso
+                    ) {
+                        setLoading(
+                            true
+                        );
+                    }
+
+                    const response =
+                        await fetch(
+                            `/api/live?slug=${encodeURIComponent(
+                                MATCH_SLUG
+                            )}`,
+                            {
+                                cache:
+                                    "no-store",
+                            }
+                        );
+
+                    const data =
+                        (await response.json()) as LiveResponse;
+
+                    if (
+                        !response.ok ||
+                        !data.ok ||
+                        !data.match
+                    ) {
+                        throw new Error(
+                            data.error ||
+                                "No se pudo cargar el partido."
+                        );
+                    }
+
+                    setMatch(
+                        data.match
+                    );
+
+                    setEvents(
+                        data.events ??
+                            []
+                    );
+
+                    setStats(
+                        data.stats ??
+                            []
+                    );
+
+                    setLineups(
+                        data.lineups ??
+                            []
+                    );
+
+                    setError("");
+                } catch (
+                    cause
+                ) {
+                    if (
+                        !silencioso
+                    ) {
+                        setError(
+                            cause instanceof
+                                Error
+                                ? cause.message
+                                : "No se pudo cargar el Match Center."
+                        );
+                    }
+                } finally {
+                    if (
+                        !silencioso
+                    ) {
+                        setLoading(
+                            false
+                        );
+                    }
+                }
+            },
+            []
+        );
+
+    useEffect(() => {
+        cargar();
+
+        const poll =
+            window.setInterval(
+                () => {
+                    cargar(
+                        true
+                    );
+                },
+                2500
+            );
+
+        return () =>
+            window.clearInterval(
+                poll
+            );
+    }, [
+        cargar,
+    ]);
+
+    /* =====================================================
+       CRONÓMETRO VISUAL
+    ===================================================== */
+
+    useEffect(() => {
+        const interval =
+            window.setInterval(
+                () => {
+                    setTick(
+                        Date.now()
+                    );
+                },
+                250
+            );
+
+        return () =>
+            window.clearInterval(
+                interval
+            );
+    }, []);
+
+    const segundosPartido =
+        useMemo(() => {
+            if (!match) {
+                return 0;
+            }
+
+            const base =
+                match.elapsed_seconds ??
+                0;
+
+            const corriendo =
+                match.status ===
+                    "first_half" ||
+                match.status ===
+                    "second_half";
+
+            const startedAt =
+                match.period_started_at;
+
+            if (
+                !corriendo ||
+                !startedAt
+            ) {
+                return base;
+            }
+
+            const inicio =
+                new Date(
+                    startedAt
+                ).getTime();
+
+            if (
+                Number.isNaN(
+                    inicio
+                )
+            ) {
+                return base;
+            }
+
+            return (
+                base +
+                Math.max(
+                    0,
+                    tick -
+                        inicio
+                ) /
+                    1000
+            );
+        }, [
+            match,
+            tick,
+        ]);
+
+    const reloj =
+        useMemo(
+            () =>
+                formatClock(
+                    segundosPartido
+                ),
+            [
+                segundosPartido,
+            ]
+        );
+
+    const minutoVisual =
+        useMemo(
+            () =>
+                minutoFutbolistico(
+                    segundosPartido,
+                    match?.current_period ??
+                        1
+                ),
+            [
+                match?.current_period,
+                segundosPartido,
+            ]
+        );
+
+    /* =====================================================
+       TIEMPO AÑADIDO ACTUAL
+    ===================================================== */
+
+    const tiempoAnadidoActual =
+        useMemo(() => {
+            if (!match) {
+                return 0;
+            }
+
+            if (
+                match.current_period ===
+                1
+            ) {
+                return (
+                    match.added_time_first_half ??
+                    0
+                );
+            }
+
+            if (
+                match.current_period ===
+                2
+            ) {
+                return (
+                    match.added_time_second_half ??
+                    0
+                );
+            }
+
+            return 0;
+        }, [
+            match,
+        ]);
+
+    const mostrarAvisoAgregado =
+        Boolean(
+            match &&
+                tiempoAnadidoActual >
+                    0 &&
+                (
+                    match.status ===
+                        "first_half" ||
+                    match.status ===
+                        "second_half" ||
+                    match.status ===
+                        "paused"
+                )
+        );
+
+    /* =====================================================
+       COUNTDOWN
+    ===================================================== */
+
+    useEffect(() => {
+        if (
+            !match ||
+            match.status !==
+                "pre_match"
+        ) {
+            return;
+        }
+
+        const target =
+            new Date(
+                match.scheduled_at
+            ).getTime();
+
+        function actualizar() {
+            const diff =
+                target -
+                Date.now();
+
+            if (
+                diff <= 0
+            ) {
+                setCountdown({
+                    dias: 0,
+                    horas: 0,
+                    minutos: 0,
+                    segundos: 0,
+                });
+
+                return;
+            }
+
+            setCountdown({
+                dias:
+                    Math.floor(
+                        diff /
+                            86400000
+                    ),
+
+                horas:
+                    Math.floor(
+                        (diff /
+                            3600000) %
+                            24
+                    ),
+
+                minutos:
+                    Math.floor(
+                        (diff /
+                            60000) %
+                            60
+                    ),
+
+                segundos:
+                    Math.floor(
+                        (diff /
+                            1000) %
+                            60
+                    ),
+            });
+        }
+
+        actualizar();
+
+        const timer =
+            window.setInterval(
+                actualizar,
+                1000
+            );
+
+        return () =>
+            window.clearInterval(
+                timer
+            );
+    }, [
+        match,
+    ]);
+
+    /* =====================================================
+       DERIVADOS
+    ===================================================== */
+
+    const homeStats =
+        useMemo(
+            () =>
+                match
+                    ? stats.find(
+                          (
+                              stat
+                          ) =>
+                              stat.team ===
+                              match.home_team
+                      ) ??
+                      null
+                    : null,
+            [
+                match,
+                stats,
+            ]
+        );
+
+    const awayStats =
+        useMemo(
+            () =>
+                match
+                    ? stats.find(
+                          (
+                              stat
+                          ) =>
+                              stat.team ===
+                              match.away_team
+                      ) ??
+                      null
+                    : null,
+            [
+                match,
+                stats,
+            ]
+        );
+
+    const homeLineup =
+        useMemo(
+            () =>
+                match
+                    ? lineups.filter(
+                          (
+                              player
+                          ) =>
+                              player.team ===
+                              match.home_team
+                      )
+                    : [],
+            [
+                lineups,
+                match,
+            ]
+        );
+
+    const awayLineup =
+        useMemo(
+            () =>
+                match
+                    ? lineups.filter(
+                          (
+                              player
+                          ) =>
+                              player.team ===
+                              match.away_team
+                      )
+                    : [],
+            [
+                lineups,
+                match,
+            ]
+        );
+
+    const homeConfirmed =
+        homeLineup.filter(
+            (
+                player
+            ) =>
+                player.is_starter
+        ).length === 11;
+
+    const awayConfirmed =
+        awayLineup.filter(
+            (
+                player
+            ) =>
+                player.is_starter
+        ).length === 11;
+
+    const live =
+        match?.status ===
+            "first_half" ||
+        match?.status ===
+            "second_half";
+
+    const enPartido =
+        match?.status !==
+        "pre_match";
+
+    /* =====================================================
+       LOADING
+    ===================================================== */
+
+    if (
+        loading &&
+        !match
+    ) {
+        return (
+            <main className="flex min-h-screen items-center justify-center bg-[#020817] text-white">
+                <div className="text-center">
+                    <p className="text-[8px] font-black uppercase tracking-[0.3em] text-cyan-300">
+                        Génesis FC
+                    </p>
+
+                    <h1 className="mt-4 text-2xl font-black uppercase">
+                        Match Center
+                    </h1>
+
+                    <p className="mt-4 text-xs uppercase tracking-[0.15em] text-white/30">
+                        Conectando con Live Ops...
+                    </p>
+                </div>
+            </main>
+        );
+    }
+
+    if (!match) {
+        return (
+            <main className="flex min-h-screen items-center justify-center bg-[#020817] px-6 text-white">
+                <div className="max-w-lg text-center">
+                    <p className="text-[8px] font-black uppercase tracking-[0.28em] text-cyan-300">
+                        Génesis Match Center
+                    </p>
+
+                    <h1 className="mt-5 text-4xl font-black uppercase">
+                        Partido no disponible
+                    </h1>
+
+                    <p className="mt-4 text-sm text-white/40">
+                        {error}
+                    </p>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="min-h-screen bg-[#f3f3f1] text-[#06142d]">
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
+            <header className="absolute inset-x-0 top-0 z-50 border-b border-white/10 bg-[#020817]/80 text-white backdrop-blur-xl">
+                <div className="mx-auto flex h-[72px] max-w-[1600px] items-center justify-between px-4 sm:h-[86px] sm:px-8 lg:px-12">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-3"
+                    >
+                        <div className="relative h-11 w-11 sm:h-14 sm:w-14">
+                            <Image
+                                src="/genesis.jpg"
+                                alt="Génesis FC"
+                                fill
+                                priority
+                                quality={
+                                    100
+                                }
+                                sizes="56px"
+                                className="object-contain"
+                            />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-black uppercase sm:text-lg">
+                                Génesis FC
+                            </p>
+
+                            <p className="mt-1 text-[6px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                                Match Center
+                            </p>
+                        </div>
+                    </Link>
+
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div
+                            className={`hidden items-center gap-2 rounded-full border px-4 py-3 sm:flex ${statusStyles(
+                                match.status
+                            )}`}
+                        >
+                            {live && (
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+                            )}
+
+                            <span className="text-[7px] font-black uppercase tracking-[0.18em]">
+                                {statusLabel(
+                                    match.status
+                                )}
+
+                                {live
+                                    ? ` · ${minutoVisual}`
+                                    : ""}
+                            </span>
+                        </div>
+
+                        <Link
+                            href="/calendario"
+                            className="rounded-full border border-white/15 px-4 py-3 text-[7px] font-black uppercase tracking-[0.15em] transition hover:bg-white hover:text-[#06142d] sm:px-6 sm:text-[8px]"
+                        >
+                            ← Calendario
+                        </Link>
+                    </div>
+                </div>
+            </header>
+
+            {/* =================================================
+                HERO
+            ================================================= */}
+
+            <section className="relative overflow-hidden bg-[#020817] px-4 pb-16 pt-[118px] text-white sm:px-8 sm:pb-24 sm:pt-[150px] lg:px-12">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(20,125,213,0.30),transparent_43%)]" />
+
+                <div className="relative mx-auto max-w-[1400px]">
+                    <div className="text-center">
+                        <div
+                            className={`inline-flex items-center gap-3 rounded-full border px-5 py-3 ${statusStyles(
+                                match.status
+                            )}`}
+                        >
+                            {live ? (
+                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+                            ) : (
+                                <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                            )}
+
+                            <p className="text-[7px] font-black uppercase tracking-[0.22em]">
+                                {statusLabel(
+                                    match.status
+                                )}
+                            </p>
+
+                            <span className="opacity-30">
+                                ·
+                            </span>
+
+                            <p className="text-[7px] font-black uppercase tracking-[0.22em] opacity-70">
+                                {
+                                    match.competition
+                                }{" "}
+                                · Jornada{" "}
+                                {
+                                    match.matchday
+                                }
+                            </p>
+                        </div>
+
+                        <p className="mt-5 text-[8px] font-black uppercase tracking-[0.22em] text-cyan-300">
+                            Sábado 19 de septiembre · 3:00 PM
+                        </p>
+                    </div>
+
+                    <div className="mx-auto mt-12 grid max-w-[1100px] grid-cols-[1fr_110px_1fr] items-center gap-2 sm:grid-cols-[1fr_260px_1fr]">
+                        <div className="flex min-w-0 flex-col items-center">
+                            <Logo
+                                src={
+                                    match.home_logo ||
+                                    "/genesis.jpg"
+                                }
+                                alt={
+                                    match.home_team
+                                }
+                                large
+                            />
+
+                            <h1 className="mt-5 text-center text-xl font-black uppercase tracking-[-0.04em] sm:text-4xl lg:text-5xl">
+                                {
+                                    match.home_team
+                                }
+                            </h1>
+
+                            <p className="mt-2 text-[6px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                                Local
+                            </p>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                            {enPartido ? (
+                                <>
+                                    <div className="flex items-center gap-3 sm:gap-6">
+                                        <span className="text-5xl font-black tabular-nums tracking-[-0.07em] sm:text-8xl">
+                                            {
+                                                match.home_score
+                                            }
+                                        </span>
+
+                                        <span className="text-xl font-black text-white/20 sm:text-4xl">
+                                            —
+                                        </span>
+
+                                        <span className="text-5xl font-black tabular-nums tracking-[-0.07em] text-cyan-300 sm:text-8xl">
+                                            {
+                                                match.away_score
+                                            }
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-6 min-w-[170px] rounded-[20px] border border-white/10 bg-white/[0.045] px-6 py-4 text-center">
+                                        <p className="text-4xl font-black tabular-nums tracking-[-0.05em] text-cyan-300 sm:text-5xl">
+                                            {match.status ===
+                                            "halftime"
+                                                ? "HT"
+                                                : match.status ===
+                                                    "finished"
+                                                  ? "FT"
+                                                  : minutoVisual}
+                                        </p>
+
+                                        <p className="mt-3 font-mono text-[10px] font-black tabular-nums text-white/35">
+                                            {
+                                                reloj
+                                            }
+                                        </p>
+
+                                        <p className="mt-2 text-[6px] font-black uppercase tracking-[0.2em] text-white/25">
+                                            {match.status ===
+                                            "finished"
+                                                ? "Partido finalizado"
+                                                : match.status ===
+                                                    "halftime"
+                                                  ? "Descanso"
+                                                  : match.status ===
+                                                      "paused"
+                                                    ? "Reloj pausado"
+                                                    : "Tiempo de juego"}
+                                        </p>
+                                    </div>
+
+                                    {mostrarAvisoAgregado && (
+                                        <div className="mt-3 rounded-full border border-amber-300/25 bg-amber-300/[0.09] px-4 py-2.5">
+                                            <p className="text-[6px] font-black uppercase tracking-[0.15em] text-amber-200 sm:text-[7px]">
+                                                +
+                                                {
+                                                    tiempoAnadidoActual
+                                                }{" "}
+                                                min de tiempo añadido
+                                            </p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <span className="text-3xl font-black italic tracking-[-0.08em] text-white/20 sm:text-6xl">
+                                        VS
+                                    </span>
+
+                                    <div className="mt-4 h-12 w-px bg-gradient-to-b from-cyan-300/60 to-transparent" />
+                                </>
+                            )}
+                        </div>
+
+                        <div className="flex min-w-0 flex-col items-center">
+                            <Logo
+                                src={
+                                    match.away_logo ||
+                                    "/olancho.png"
+                                }
+                                alt={
+                                    match.away_team
+                                }
+                                large
+                            />
+
+                            <h2 className="mt-5 text-center text-xl font-black uppercase tracking-[-0.04em] text-cyan-300 sm:text-4xl lg:text-5xl">
+                                {
+                                    match.away_team
+                                }
+                            </h2>
+
+                            <p className="mt-2 text-[6px] font-black uppercase tracking-[0.2em] text-white/30">
+                                Visitante
+                            </p>
+                        </div>
+                    </div>
+
+                    {match.status ===
+                        "pre_match" && (
+                        <div className="mx-auto mt-14 max-w-[720px] border-t border-white/10 pt-9">
+                            <p className="text-center text-[7px] font-black uppercase tracking-[0.28em] text-white/30">
+                                Cuenta regresiva para el partido
+                            </p>
+
+                            <div className="mt-7 grid grid-cols-4 gap-2 sm:gap-4">
+                                {[
+                                    [
+                                        "Días",
+                                        countdown.dias,
+                                    ],
+                                    [
+                                        "Horas",
+                                        countdown.horas,
+                                    ],
+                                    [
+                                        "Min",
+                                        countdown.minutos,
+                                    ],
+                                    [
+                                        "Seg",
+                                        countdown.segundos,
+                                    ],
+                                ].map(
+                                    ([
+                                        label,
+                                        value,
+                                    ]) => (
+                                        <div
+                                            key={String(
+                                                label
+                                            )}
+                                            className="rounded-[18px] border border-white/10 bg-white/[0.045] px-2 py-5 text-center sm:rounded-[22px] sm:py-7"
+                                        >
+                                            <p className="text-2xl font-black tabular-nums tracking-[-0.05em] sm:text-4xl">
+                                                {dos(
+                                                    Number(
+                                                        value
+                                                    )
+                                                )}
+                                            </p>
+
+                                            <p className="mt-2 text-[5px] font-black uppercase tracking-[0.18em] text-white/25">
+                                                {
+                                                    label
+                                                }
+                                            </p>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* =================================================
+                DATOS
+            ================================================= */}
+
+            <section className="relative z-10 px-4 sm:px-8 lg:px-12">
+                <div className="mx-auto grid max-w-[1200px] grid-cols-2 overflow-hidden rounded-[24px] border border-black/[0.06] bg-white shadow-[0_25px_80px_rgba(6,20,45,0.10)] sm:grid-cols-4">
+                    {[
+                        [
+                            "Fecha",
+                            "19 SEP 2026",
+                        ],
+                        [
+                            "Hora",
+                            "3:00 PM",
+                        ],
+                        [
+                            "Estadio",
+                            match.stadium ||
+                                "Roberto Suazo Córdova",
+                        ],
+                        [
+                            "Ciudad",
+                            match.city ||
+                                "La Paz, Honduras",
+                        ],
+                    ].map(
+                        (
+                            [
+                                title,
+                                value,
+                            ],
+                            index
+                        ) => (
+                            <div
+                                key={
+                                    title
+                                }
+                                className={`px-4 py-6 text-center sm:px-6 sm:py-8 ${
+                                    index !==
+                                    0
+                                        ? "border-l border-black/[0.06]"
+                                        : ""
+                                } ${
+                                    index >=
+                                    2
+                                        ? "border-t border-black/[0.06] sm:border-t-0"
+                                        : ""
+                                }`}
+                            >
+                                <p className="text-[6px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                                    {
+                                        title
+                                    }
+                                </p>
+
+                                <p className="mt-2 text-[10px] font-black uppercase sm:text-xs">
+                                    {
+                                        value
+                                    }
+                                </p>
+                            </div>
+                        )
+                    )}
+                </div>
+            </section>
+
+            {/* =================================================
+                ALINEACIONES
+            ================================================= */}
+
+            <section className="px-4 pb-4 pt-16 sm:px-8 sm:pt-24 lg:px-12">
+                <div className="mx-auto max-w-[1300px]">
+                    <div className="flex flex-col gap-4 border-b border-black/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="text-[7px] font-black uppercase tracking-[0.27em] text-[#168cab]">
+                                Matchday Squad
+                            </p>
+
+                            <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">
+                                Alineaciones
+                                <span className="text-[#168cab]">
+                                    .
+                                </span>
+                            </h2>
+                        </div>
+
+                        <div className="max-w-[420px]">
+                            <p className="text-xs leading-6 text-black/40">
+                                {homeConfirmed &&
+                                awayConfirmed
+                                    ? "Los once iniciales de ambos equipos están confirmados en Génesis Live Ops."
+                                    : "Los planteles ya están disponibles. El XI de cada equipo aparecerá como oficial únicamente cuando estén definidos los 11 titulares."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 grid gap-6 xl:grid-cols-2">
+                        <TeamSquad
+                            team={
+                                match.home_team
+                            }
+                            logo={
+                                match.home_logo ||
+                                "/genesis.jpg"
+                            }
+                            players={
+                                homeLineup
+                            }
+                        />
+
+                        <TeamSquad
+                            team={
+                                match.away_team
+                            }
+                            logo={
+                                match.away_logo ||
+                                "/olancho.png"
+                            }
+                            players={
+                                awayLineup
+                            }
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                MATCH CENTER
+            ================================================= */}
+
+            <section className="px-4 py-16 sm:px-8 sm:py-24 lg:px-12">
+                <div className="mx-auto max-w-[1300px]">
+                    <div className="flex flex-col gap-5 border-b border-black/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="text-[7px] font-black uppercase tracking-[0.27em] text-[#168cab]">
+                                Génesis Live Ops
+                            </p>
+
+                            <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">
+                                Partido
+                                <span className="text-[#168cab]">
+                                    {" "}
+                                    Live.
+                                </span>
+                            </h2>
+                        </div>
+
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                            <div
+                                className={`w-fit rounded-full border px-5 py-3 ${statusStyles(
+                                    match.status
+                                )}`}
+                            >
+                                <p className="text-[7px] font-black uppercase tracking-[0.2em]">
+                                    {statusLabel(
+                                        match.status
+                                    )}
+
+                                    {live
+                                        ? ` · ${minutoVisual}`
+                                        : ""}
+                                </p>
+                            </div>
+
+                            {mostrarAvisoAgregado && (
+                                <p className="text-[7px] font-black uppercase tracking-[0.16em] text-amber-600">
+                                    +
+                                    {
+                                        tiempoAnadidoActual
+                                    }{" "}
+                                    min añadidos
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-8 grid gap-6 lg:grid-cols-[1.12fr_0.88fr]">
+                        {/* EVENTOS */}
+
+                        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_18px_60px_rgba(6,20,45,0.05)]">
+                            <div className="flex items-center justify-between gap-4 border-b border-black/[0.06] px-6 py-6 sm:px-8">
+                                <div>
+                                    <p className="text-[7px] font-black uppercase tracking-[0.22em] text-[#168cab]">
+                                        Minuto a minuto
+                                    </p>
+
+                                    <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em]">
+                                        Eventos del partido
+                                    </h3>
+                                </div>
+
+                                {live && (
+                                    <div className="flex items-center gap-2 rounded-full border border-red-500/15 bg-red-500/[0.05] px-3 py-2">
+                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+
+                                        <span className="text-[6px] font-black uppercase tracking-[0.15em] text-red-600">
+                                            Live ·{" "}
+                                            {
+                                                minutoVisual
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {events.length >
+                            0 ? (
+                                <div className="space-y-3 p-4 sm:p-6">
+                                    {events.map(
+                                        (
+                                            event
+                                        ) => {
+                                            const style =
+                                                eventStyle(
+                                                    event.event_type
+                                                );
+
+                                            return (
+                                                <div
+                                                    key={
+                                                        event.id
+                                                    }
+                                                    className={`grid grid-cols-[62px_1fr] gap-4 rounded-[20px] border p-4 sm:grid-cols-[72px_1fr] sm:p-5 ${style.wrapper}`}
+                                                >
+                                                    <div className="flex flex-col items-center">
+                                                        <div
+                                                            className={`flex h-11 w-11 items-center justify-center rounded-full border text-[10px] font-black ${style.icon}`}
+                                                        >
+                                                            {eventIcon(
+                                                                event.event_type
+                                                            )}
+                                                        </div>
+
+                                                        <p className="mt-3 text-sm font-black tabular-nums text-[#168cab]">
+                                                            {minutoEvento(
+                                                                event.minute,
+                                                                event.period
+                                                            )}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span
+                                                                className={`text-[7px] font-black uppercase tracking-[0.19em] ${style.label}`}
+                                                            >
+                                                                {eventName(
+                                                                    event.event_type
+                                                                )}
+                                                            </span>
+
+                                                            {event.team && (
+                                                                <>
+                                                                    <span className="text-black/20">
+                                                                        ·
+                                                                    </span>
+
+                                                                    <span className="text-[7px] font-black uppercase tracking-[0.16em] text-black/35">
+                                                                        {
+                                                                            event.team
+                                                                        }
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
+
+                                                        {event.player_name && (
+                                                            <p className="mt-3 text-base font-black uppercase">
+                                                                {
+                                                                    event.player_name
+                                                                }
+                                                            </p>
+                                                        )}
+
+                                                        {event.event_type ===
+                                                            "substitution" &&
+                                                            event.player_out &&
+                                                            event.player_in && (
+                                                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                                                    <div className="rounded-[12px] bg-red-500/[0.05] px-3 py-3">
+                                                                        <p className="text-[6px] font-black uppercase text-red-500">
+                                                                            Sale
+                                                                        </p>
+
+                                                                        <p className="mt-1 text-[10px] font-black uppercase">
+                                                                            {
+                                                                                event.player_out
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div className="rounded-[12px] bg-emerald-500/[0.05] px-3 py-3">
+                                                                        <p className="text-[6px] font-black uppercase text-emerald-600">
+                                                                            Entra
+                                                                        </p>
+
+                                                                        <p className="mt-1 text-[10px] font-black uppercase">
+                                                                            {
+                                                                                event.player_in
+                                                                            }
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                        {event.description && (
+                                                            <p className="mt-3 text-xs leading-6 text-black/50">
+                                                                {
+                                                                    event.description
+                                                                }
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex min-h-[320px] items-center justify-center px-6 py-12 text-center">
+                                    <div className="max-w-[390px]">
+                                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#168cab]/20 bg-[#168cab]/5 text-xl">
+                                            ⚽
+                                        </div>
+
+                                        <h4 className="mt-5 text-lg font-black uppercase">
+                                            Sin eventos todavía
+                                        </h4>
+
+                                        <p className="mt-3 text-xs leading-6 text-black/40">
+                                            Cuando Live Ops registre una incidencia aparecerá aquí automáticamente.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </article>
+
+                        {/* ESTADÍSTICAS */}
+
+                        <article className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white">
+                            <div className="border-b border-black/[0.06] px-6 py-6 sm:px-8">
+                                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-[#168cab]">
+                                    Datos
+                                </p>
+
+                                <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em]">
+                                    Estadísticas
+                                </h3>
+                            </div>
+
+                            <div className="px-6 sm:px-8">
+                                <StatRow
+                                    name="Posesión"
+                                    home={
+                                        homeStats?.possession ??
+                                        null
+                                    }
+                                    away={
+                                        awayStats?.possession ??
+                                        null
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Tiros"
+                                    home={
+                                        homeStats?.shots ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.shots ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="A puerta"
+                                    home={
+                                        homeStats?.shots_on_target ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.shots_on_target ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Córners"
+                                    home={
+                                        homeStats?.corners ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.corners ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Faltas"
+                                    home={
+                                        homeStats?.fouls ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.fouls ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Offsides"
+                                    home={
+                                        homeStats?.offsides ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.offsides ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Amarillas"
+                                    home={
+                                        homeStats?.yellow_cards ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.yellow_cards ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Rojas"
+                                    home={
+                                        homeStats?.red_cards ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.red_cards ??
+                                        0
+                                    }
+                                />
+
+                                <StatRow
+                                    name="Atajadas"
+                                    home={
+                                        homeStats?.saves ??
+                                        0
+                                    }
+                                    away={
+                                        awayStats?.saves ??
+                                        0
+                                    }
+                                />
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                PREVIA
+            ================================================= */}
+
+            <section className="bg-[#06142d] px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12">
+                <div className="mx-auto grid max-w-[1200px] gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <span className="h-px w-8 bg-cyan-300" />
+
+                            <p className="text-[7px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                                Jornada 8
+                            </p>
+                        </div>
+
+                        <h2 className="mt-5 text-5xl font-black uppercase leading-[0.88] tracking-[-0.06em] sm:text-7xl">
+                            La Paz
+                            <br />
+                            recibe al
+                            <br />
+                            Olancho
+                            <span className="text-cyan-300">
+                                .
+                            </span>
+                        </h2>
+                    </div>
+
+                    <div className="flex flex-col justify-center">
+                        <p className="text-base font-semibold leading-8 text-white/70 sm:text-lg sm:leading-9">
+                            Génesis FC vuelve a casa para recibir a Olancho FC en el Estadio Roberto Suazo Córdova.
+                        </p>
+
+                        <p className="mt-6 text-sm leading-7 text-white/35 sm:text-base sm:leading-8">
+                            Desde este Match Center podrás seguir el marcador, cronómetro, alineaciones y principales incidencias registradas directamente desde Génesis Live Ops.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                FORMA
+            ================================================= */}
+
+            <section className="bg-[#ececea] px-4 py-16 sm:px-8 sm:py-24 lg:px-12">
+                <div className="mx-auto max-w-[1000px]">
+                    <div className="border-b border-black/10 pb-7">
+                        <p className="text-[7px] font-black uppercase tracking-[0.27em] text-[#168cab]">
+                            Antes del partido
+                        </p>
+
+                        <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">
+                            Forma de Génesis
+                            <span className="text-[#168cab]">
+                                .
+                            </span>
+                        </h2>
+                    </div>
+
+                    <div className="mt-8">
+                        <FormaGenesis />
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                CTA
+            ================================================= */}
+
+            <section className="bg-[#071a3b] px-4 py-16 text-white sm:px-8 sm:py-20 lg:px-12">
+                <div className="mx-auto flex max-w-[1200px] flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-[7px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                            Match Center oficial
+                        </p>
+
+                        <h2 className="mt-4 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl">
+                            Vamos Génesis
+                            <span className="text-cyan-300">
+                                .
+                            </span>
+                        </h2>
+
+                        <p className="mt-4 max-w-[520px] text-xs leading-6 text-white/40">
+                            Actualización operada con Génesis Live Ops.
+                        </p>
+                    </div>
+
+                    <Link
+                        href="/"
+                        className="inline-flex w-fit items-center gap-4 rounded-full bg-cyan-300 px-7 py-4 text-[7px] font-black uppercase tracking-[0.18em] text-[#06142d] transition hover:bg-white"
+                    >
+                        Volver al inicio
+                        <span>
+                            →
+                        </span>
+                    </Link>
+                </div>
+            </section>
+
+            {/* =================================================
+                FOOTER
+            ================================================= */}
+
+            <footer className="bg-[#020817] px-4 py-9 text-white sm:px-8 lg:px-12">
+                <div className="mx-auto flex max-w-[1200px] flex-col gap-5 border-b border-white/10 pb-7 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="relative h-10 w-10">
+                            <Image
+                                src="/genesis.jpg"
+                                alt="Génesis FC"
+                                fill
+                                quality={
+                                    100
+                                }
+                                sizes="40px"
+                                className="object-contain"
+                            />
+                        </div>
+
+                        <p className="text-xs font-black uppercase">
+                            Génesis FC
+                        </p>
+                    </div>
+
+                    <div className="flex gap-5">
+                        <Link
+                            href="/"
+                            className="text-[6px] font-black uppercase tracking-[0.16em] text-white/30 transition hover:text-white"
+                        >
+                            Inicio
+                        </Link>
+
+                        <Link
+                            href="/calendario"
+                            className="text-[6px] font-black uppercase tracking-[0.16em] text-white/30 transition hover:text-white"
+                        >
+                            Calendario
+                        </Link>
+                    </div>
+                </div>
+
+                <div className="mx-auto flex max-w-[1200px] flex-col gap-2 pt-6 sm:flex-row sm:justify-between">
+                    <p className="text-[6px] font-black uppercase tracking-[0.14em] text-white/20">
+                        © 2026 Génesis FC. Todos los derechos reservados.
+                    </p>
+
+                    <p className="text-[6px] font-black uppercase tracking-[0.14em] text-white/20">
+                        La Paz · Honduras
+                    </p>
+                </div>
+            </footer>
+        </main>
+    );
+}

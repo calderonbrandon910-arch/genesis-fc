@@ -5,8 +5,9 @@
    PARA ACTUALIZAR EL SITIO NORMALMENTE SOLO NECESITAS EDITAR:
 
    1. CONFIGURACIÓN DE TEMPORADA
-   2. PARTIDOS
-   3. TABLA DE POSICIONES
+   2. ÚLTIMO RESULTADO
+   3. PRÓXIMOS PARTIDOS
+   4. TABLA DE POSICIONES
 
    Calendario + clasificación + Asistente Génesis
    leen automáticamente este archivo.
@@ -26,6 +27,20 @@ export type Partido = {
   logoVisitante: string;
   estadio: string;
   ciudad: string;
+};
+
+export type ResultadoReciente = {
+  jornada: number;
+  fecha: string;
+  local: string;
+  visitante: string;
+  logoLocal: string;
+  logoVisitante: string;
+  golesLocal: number;
+  golesVisitante: number;
+  estadio: string;
+  ciudad: string;
+  goleador?: string;
 };
 
 export type Equipo = {
@@ -58,16 +73,48 @@ export const configuracionFutbol = {
     "Estadio Roberto Suazo Córdova",
 
   jornadasPublicadas: {
-    desde: 7,
+    desde: 8,
     hasta: 16,
   },
 
   ultimaActualizacion:
-    "11 SEP 2026",
+    "13 SEP 2026",
 };
 
 /* =========================================================
-   2. PARTIDOS
+   2. ÚLTIMO RESULTADO OFICIAL
+========================================================= */
+
+export const ultimoResultado:
+  ResultadoReciente = {
+  jornada: 7,
+
+  fecha: "12 SEP 2026",
+
+  local: "Motagua",
+
+  visitante: "Génesis FC",
+
+  logoLocal: "/motagua.png",
+
+  logoVisitante: "/genesis.jpg",
+
+  golesLocal: 1,
+
+  golesVisitante: 0,
+
+  estadio:
+    "Estadio Carlos Miranda",
+
+  ciudad:
+    "Comayagua, Honduras",
+
+  goleador:
+    "Rodrigo de Oliveira",
+};
+
+/* =========================================================
+   3. PRÓXIMOS PARTIDOS
    EDITAR AQUÍ CUANDO SE CONFIRME:
    - FECHA
    - HORA
@@ -78,28 +125,6 @@ export const configuracionFutbol = {
 ========================================================= */
 
 export const partidos: Partido[] = [
-  {
-    jornada: 7,
-
-    fecha: "12 SEP 2026",
-
-    hora: "7:00 PM",
-
-    local: "Motagua",
-
-    visitante: "Génesis FC",
-
-    logoLocal: "/motagua.png",
-
-    logoVisitante: "/genesis.jpg",
-
-    estadio:
-      "Estadio Carlos Miranda",
-
-    ciudad:
-      "Comayagua, Honduras",
-  },
-
   {
     jornada: 8,
 
@@ -296,7 +321,7 @@ export const partidos: Partido[] = [
 ];
 
 /* =========================================================
-   3. TABLA DE POSICIONES
+   4. TABLA DE POSICIONES
    EDITAR AQUÍ DESPUÉS DE CADA JORNADA
 
    Solo actualizar:
@@ -315,6 +340,18 @@ export const partidos: Partido[] = [
 export const equipos: Equipo[] = [
   {
     posicion: 1,
+    nombre: "Real España",
+    logo: "/real-espana.jpg",
+    pj: 7,
+    g: 4,
+    e: 3,
+    p: 0,
+    gf: 12,
+    gc: 4,
+  },
+
+  {
+    posicion: 2,
     nombre: "Olimpia",
     logo: "/olimpia.png",
     pj: 6,
@@ -326,7 +363,7 @@ export const equipos: Equipo[] = [
   },
 
   {
-    posicion: 2,
+    posicion: 3,
     nombre: "Marathón",
     logo: "/marathon.png",
     pj: 6,
@@ -338,69 +375,56 @@ export const equipos: Equipo[] = [
   },
 
   {
-    posicion: 3,
-    nombre: "Real España",
-    logo: "/real-espana.jpg",
-    pj: 6,
-    g: 4,
-    e: 2,
-    p: 0,
-    gf: 11,
-    gc: 3,
-  },
-
-  {
     posicion: 4,
-    nombre: "Génesis FC",
-    logo: "/genesis.jpg",
-    pj: 6,
-    g: 3,
+    nombre: "Motagua",
+    logo: "/motagua.png",
+    pj: 7,
+    g: 4,
     e: 1,
     p: 2,
-    gf: 10,
-    gc: 5,
+    gf: 11,
+    gc: 7,
   },
 
   {
     posicion: 5,
-    nombre: "Motagua",
-    logo: "/motagua.png",
-    pj: 6,
+    nombre: "Génesis FC",
+    logo: "/genesis.jpg",
+    pj: 7,
     g: 3,
     e: 1,
-    p: 2,
+    p: 3,
     gf: 10,
-    gc: 7,
+    gc: 6,
   },
 
   {
     posicion: 6,
     nombre: "Olancho FC",
     logo: "/olancho.png",
-    pj: 6,
+    pj: 7,
     g: 2,
-    e: 3,
+    e: 4,
     p: 1,
-    gf: 5,
-    gc: 4,
+    gf: 6,
+    gc: 5,
   },
 
   {
     posicion: 7,
     nombre: "Estrella Roja",
     logo: "/estrella-roja.jpg",
-    pj: 6,
+    pj: 7,
     g: 2,
-    e: 2,
+    e: 3,
     p: 2,
-    gf: 11,
-    gc: 12,
+    gf: 13,
+    gc: 14,
   },
 
   {
     posicion: 8,
-    nombre:
-      "Atlético Independiente",
+    nombre: "Atlético Independiente",
     logo: "/independiente.png",
     pj: 6,
     g: 1,
@@ -412,6 +436,18 @@ export const equipos: Equipo[] = [
 
   {
     posicion: 9,
+    nombre: "Platense",
+    logo: "/platense.jpg",
+    pj: 7,
+    g: 1,
+    e: 2,
+    p: 4,
+    gf: 6,
+    gc: 16,
+  },
+
+  {
+    posicion: 10,
     nombre: "CD Choloma",
     logo: "/choloma.png",
     pj: 6,
@@ -420,18 +456,6 @@ export const equipos: Equipo[] = [
     p: 4,
     gf: 4,
     gc: 7,
-  },
-
-  {
-    posicion: 10,
-    nombre: "Platense",
-    logo: "/platense.jpg",
-    pj: 6,
-    g: 1,
-    e: 1,
-    p: 4,
-    gf: 4,
-    gc: 14,
   },
 
   {
@@ -532,6 +556,14 @@ export function obtenerPartidoPorJornada(
 }
 
 /* =========================================================
+   PRÓXIMO PARTIDO
+========================================================= */
+
+export function obtenerProximoPartido() {
+  return partidos[0] ?? null;
+}
+
+/* =========================================================
    PARTIDOS COMO LOCAL
 ========================================================= */
 
@@ -619,6 +651,11 @@ export const resumenFutbol = {
           genesis
         )
       : null,
+
+  ultimoResultado,
+
+  proximoPartido:
+    obtenerProximoPartido(),
 
   ultimaActualizacion:
     configuracionFutbol.ultimaActualizacion,
