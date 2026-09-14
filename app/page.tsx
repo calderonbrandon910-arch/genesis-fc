@@ -2123,6 +2123,142 @@ export default function Home() {
       </section>
 
       {/* =====================================================
+          HOME 2.0 · ENTRADAS
+      ===================================================== */}
+
+      <section className="bg-[#06142d] px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16">
+        <div className="mx-auto max-w-[1550px]">
+          <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.28em] text-cyan-300 sm:text-[8px]">
+                Boletería oficial
+              </p>
+
+              <h2 className="mt-3 text-[2.9rem] font-black uppercase leading-[0.84] tracking-[-0.06em] sm:text-[4.8rem] lg:text-[6rem]">
+                Entradas
+                <span className="text-cyan-300">.</span>
+              </h2>
+
+              <p className="mt-4 max-w-[620px] text-xs leading-6 text-white/50 sm:text-sm">
+                Precios oficiales para Génesis FC vs Olancho FC. Compra tus entradas en K9 Store, tienda oficial del equipo.
+              </p>
+            </div>
+
+            <Link
+              href="/partidos/genesis-vs-olancho"
+              className={`w-fit rounded-full border border-white/15 px-5 py-3 text-[7px] font-black uppercase tracking-[0.15em] text-white/70 transition hover:border-cyan-300/40 hover:bg-cyan-300 hover:text-[#06142d] sm:text-[8px] ${focusDark}`}
+            >
+              Ver Match Center →
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-5 sm:p-8">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                    Génesis FC vs Olancho FC
+                  </p>
+
+                  <p className="mt-2 text-[8px] font-black uppercase tracking-[0.14em] text-white/35">
+                    19 SEP 2026 · 3:00 PM · La Paz
+                  </p>
+                </div>
+
+                <div className="rounded-full border border-emerald-300/20 bg-emerald-300/[0.08] px-4 py-2">
+                  <p className="text-[6px] font-black uppercase tracking-[0.15em] text-emerald-300">
+                    Venta oficial
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {[
+                  ["Silla", "L 300"],
+                  ["Sombra", "L 150"],
+                  ["Preferencia Norte", "L 150"],
+                  ["Preferencia Sur", "L 150"],
+                  ["Sol", "L 100"],
+                ].map(([sector, precio]) => (
+                  <div
+                    key={sector}
+                    className="rounded-[20px] border border-white/10 bg-[#020817]/45 px-4 py-5 text-center"
+                  >
+                    <p className="min-h-[30px] text-[6px] font-black uppercase leading-4 tracking-[0.14em] text-white/40">
+                      {sector}
+                    </p>
+
+                    <p className="mt-3 text-2xl font-black tracking-[-0.04em] text-cyan-300">
+                      {precio}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row">
+                <div className="flex-1 rounded-[20px] border border-white/10 bg-white/[0.035] px-5 py-5">
+                  <p className="text-[6px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                    Punto de venta
+                  </p>
+
+                  <p className="mt-2 text-xl font-black uppercase">
+                    K9 Store
+                  </p>
+
+                  <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.12em] text-white/30">
+                    Tienda oficial de Génesis FC
+                  </p>
+                </div>
+
+                <Link
+                  href="/partidos/genesis-vs-olancho"
+                  className={`inline-flex items-center justify-center rounded-[20px] bg-cyan-300 px-6 py-5 text-[8px] font-black uppercase tracking-[0.14em] text-[#06142d] transition hover:bg-white ${focusDark}`}
+                >
+                  Ver información completa →
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-5">
+              <div className="rounded-[30px] border border-cyan-300/15 bg-cyan-300/[0.06] p-6 sm:p-8">
+                <p className="text-[7px] font-black uppercase tracking-[0.22em] text-cyan-300">
+                  Matchday
+                </p>
+
+                <h3 className="mt-4 text-3xl font-black uppercase leading-[0.9] tracking-[-0.05em] sm:text-4xl">
+                  Todo listo
+                  <br />
+                  para La Paz
+                  <span className="text-cyan-300">.</span>
+                </h3>
+
+                <p className="mt-5 text-xs leading-6 text-white/45">
+                  Consulta previa, entradas, pronóstico, reacciones y toda la experiencia del partido desde el Match Center oficial.
+                </p>
+
+                <Link
+                  href="/partidos/genesis-vs-olancho"
+                  className={`mt-6 inline-flex text-[7px] font-black uppercase tracking-[0.16em] text-white transition hover:text-cyan-300 ${focusDark}`}
+                >
+                  Entrar al Match Center →
+                </Link>
+              </div>
+
+              <div className="rounded-[26px] border border-white/10 bg-white/[0.04] px-6 py-5">
+                <p className="text-[6px] font-black uppercase tracking-[0.18em] text-white/30">
+                  Compra presencial
+                </p>
+
+                <p className="mt-2 text-sm font-black uppercase">
+                  K9 Store · punto oficial
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
           FOOTER
       ===================================================== */}
 
