@@ -1995,107 +1995,6 @@ export default function Home() {
       </section>
 
       {/* =====================================================
-          EQUIPO
-      ===================================================== */}
-
-      <section
-        id="equipo"
-        aria-labelledby="titulo-equipo"
-        className="relative overflow-hidden bg-gradient-to-r from-[#041126] via-[#09265b] to-[#0c52a0] px-4 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
-      >
-        <div className="mx-auto max-w-[1600px]">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.28em] text-cyan-300">
-                Primer equipo
-              </p>
-
-              <h2
-                id="titulo-equipo"
-                className="mt-4 text-[3rem] font-black uppercase leading-[0.86] tracking-[-0.06em] sm:text-[5.5rem]"
-              >
-                Los nuestros
-                <span className="text-cyan-300">
-                  .
-                </span>
-              </h2>
-            </div>
-
-            <Link
-              href="/equipo"
-              className={`hidden rounded-full border border-white/15 bg-white/[0.05] px-6 py-4 text-[8px] font-black uppercase tracking-[0.15em] text-white transition hover:bg-white hover:text-[#06142d] sm:inline-flex ${focusDark}`}
-            >
-              Ver plantilla completa →
-            </Link>
-          </div>
-
-          <div
-            className="mt-9 flex snap-x gap-4 overflow-x-auto pb-5 sm:gap-5"
-            aria-label="Jugadores destacados del primer equipo"
-          >
-            {jugadores.map(
-              (jugador) => (
-                <Link
-                  key={jugador.nombre}
-                  href={jugador.enlace}
-                  aria-label={`Ver perfil de ${jugador.nombre}, ${jugador.posicion}`}
-                  className={`group min-w-[245px] snap-start overflow-hidden rounded-[24px] border border-white/10 bg-[#041126] transition hover:-translate-y-1 hover:border-cyan-300/30 sm:min-w-[340px] lg:min-w-[370px] ${focusDark}`}
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    <Image
-                      src={jugador.imagen}
-                      alt={`${jugador.nombre}, jugador de Génesis FC`}
-                      fill
-                      sizes="(max-width:640px) 245px,370px"
-                      className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
-                    />
-
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-t from-[#041126] via-transparent to-transparent"
-                    />
-
-                    <span
-                      aria-hidden="true"
-                      className="absolute bottom-0 right-4 text-[74px] font-black leading-none text-white/[0.12] sm:text-[100px]"
-                    >
-                      {jugador.numero}
-                    </span>
-                  </div>
-
-                  <div className="p-5 sm:p-6">
-                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-cyan-300">
-                      {jugador.posicion}
-                    </p>
-
-                    <h3 className="mt-2 text-2xl font-black uppercase sm:text-4xl">
-                      {jugador.nombre}
-                    </h3>
-
-                    <p className="mt-4 text-[7px] font-black uppercase tracking-[0.16em] text-white/40">
-                      Ver perfil →
-                    </p>
-                  </div>
-                </Link>
-              )
-            )}
-          </div>
-
-          <div className="mt-7 flex justify-center sm:mt-9">
-            <Link
-              href="/equipo"
-              className={`inline-flex w-full items-center justify-center gap-3 rounded-full bg-cyan-300 px-8 py-4 text-[8px] font-black uppercase tracking-[0.16em] text-[#06142d] transition hover:bg-white sm:w-auto sm:text-[9px] ${focusDark}`}
-            >
-              Ver plantilla completa
-              <span aria-hidden="true">
-                →
-              </span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
           HOME 2.0 · COMMERCE GATEWAY
       ===================================================== */}
 
@@ -2366,6 +2265,163 @@ export default function Home() {
                   K9 Store · punto oficial
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          HOME 2.0 · GENESIS ECOSYSTEM PREVIEW
+      ===================================================== */}
+
+      <section
+        aria-labelledby="titulo-ecosistema"
+        className="bg-white px-4 py-16 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
+      >
+        <div className="mx-auto max-w-[1550px]">
+          <div className="grid gap-8 border-b border-black/10 pb-9 lg:grid-cols-[1fr_0.72fr] lg:items-end">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.28em] text-[#168cab] sm:text-[8px]">
+                El club sigue creciendo
+              </p>
+
+              <h2
+                id="titulo-ecosistema"
+                className="mt-3 text-[2.9rem] font-black uppercase leading-[0.82] tracking-[-0.065em] sm:text-[5rem] lg:text-[6.4rem]"
+              >
+                Ecosistema
+                <br />
+                <span className="text-[#168cab]">Génesis.</span>
+              </h2>
+            </div>
+
+            <p className="max-w-[580px] text-xs leading-6 text-black/45 sm:text-sm sm:leading-7">
+              Nuevas experiencias oficiales se están preparando para conectar al club con su afición dentro y fuera del estadio.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              {
+                numero: "01",
+                titulo: "Génesis TV",
+                texto: "Contenido audiovisual, historias y producción oficial del club.",
+                etiqueta: "En desarrollo",
+              },
+              {
+                numero: "02",
+                titulo: "Fan Zone",
+                texto: "Un nuevo espacio digital pensado para vivir Génesis como aficionado.",
+                etiqueta: "En desarrollo",
+              },
+              {
+                numero: "03",
+                titulo: "Academia",
+                texto: "El futuro del club y su desarrollo deportivo tendrán su propio espacio.",
+                etiqueta: "En desarrollo",
+              },
+              {
+                numero: "04",
+                titulo: "Beneficios",
+                texto: "Experiencias y ventajas para acercar todavía más al aficionado con Génesis FC.",
+                etiqueta: "En desarrollo",
+              },
+            ].map((item, index) => (
+              <article
+                key={item.titulo}
+                className={`group relative min-h-[300px] overflow-hidden rounded-[28px] border p-6 sm:min-h-[340px] sm:p-7 ${
+                  index === 0
+                    ? "border-[#168cab]/20 bg-[#06142d] text-white"
+                    : "border-black/[0.06] bg-[#f4f3ef]"
+                }`}
+              >
+                <div
+                  aria-hidden="true"
+                  className={`absolute -right-10 -top-12 h-40 w-40 rounded-full blur-3xl ${
+                    index === 0 ? "bg-[#168cab]/25" : "bg-[#168cab]/10"
+                  }`}
+                />
+
+                <div className="relative flex h-full flex-col justify-between">
+                  <div className="flex items-start justify-between gap-4">
+                    <p
+                      className={`text-[7px] font-black uppercase tracking-[0.22em] ${
+                        index === 0 ? "text-cyan-300" : "text-[#168cab]"
+                      }`}
+                    >
+                      {item.numero}
+                    </p>
+
+                    <span
+                      className={`rounded-full border px-3 py-2 text-[6px] font-black uppercase tracking-[0.14em] ${
+                        index === 0
+                          ? "border-white/10 bg-white/[0.05] text-white/50"
+                          : "border-black/[0.06] bg-white/60 text-black/35"
+                      }`}
+                    >
+                      {item.etiqueta}
+                    </span>
+                  </div>
+
+                  <div className="mt-16">
+                    <h3 className="text-3xl font-black uppercase leading-[0.9] tracking-[-0.045em] sm:text-[2.25rem]">
+                      {item.titulo}
+                      <span className={index === 0 ? "text-cyan-300" : "text-[#168cab]"}>
+                        .
+                      </span>
+                    </h3>
+
+                    <p
+                      className={`mt-5 text-[10px] leading-5 sm:text-xs sm:leading-6 ${
+                        index === 0 ? "text-white/45" : "text-black/42"
+                      }`}
+                    >
+                      {item.texto}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-[28px] bg-[#eaf4f6] p-6 sm:p-8">
+              <p className="text-[7px] font-black uppercase tracking-[0.22em] text-[#168cab]">
+                Próxima generación digital
+              </p>
+
+              <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">
+                    Más cerca del club.
+                  </h3>
+                  <p className="mt-3 max-w-[650px] text-[10px] leading-5 text-black/42 sm:text-xs sm:leading-6">
+                    Estos espacios formarán parte de la evolución del sitio oficial. Los iremos activando conforme completemos cada experiencia.
+                  </p>
+                </div>
+
+                <span className="shrink-0 rounded-full bg-[#06142d] px-5 py-3 text-[7px] font-black uppercase tracking-[0.14em] text-white">
+                  Home 2.0
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] bg-[#168cab] p-6 text-white sm:p-8">
+              <p className="text-[7px] font-black uppercase tracking-[0.22em] text-white/60">
+                Ya disponible
+              </p>
+              <h3 className="mt-4 text-2xl font-black uppercase tracking-[-0.04em] sm:text-3xl">
+                Vive el partido.
+              </h3>
+              <p className="mt-3 text-[10px] leading-5 text-white/60 sm:text-xs sm:leading-6">
+                Match Center, pronóstico, reacciones, MVP, entradas y toda la experiencia actual.
+              </p>
+              <Link
+                href="/partidos/genesis-vs-olancho"
+                className={`mt-6 inline-flex rounded-full bg-white px-5 py-3 text-[7px] font-black uppercase tracking-[0.14em] text-[#06142d] transition hover:bg-[#06142d] hover:text-white ${focusDark}`}
+              >
+                Abrir Match Center →
+              </Link>
             </div>
           </div>
         </div>
