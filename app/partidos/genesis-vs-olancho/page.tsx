@@ -3454,6 +3454,147 @@ export default function GenesisVsOlanchoPage() {
             </section>
 
             {/* =================================================
+                ENTRADAS
+            ================================================= */}
+
+            <section className="px-4 pt-16 sm:px-8 sm:pt-24 lg:px-12">
+                <div className="mx-auto max-w-[1200px]">
+                    <div className="overflow-hidden rounded-[30px] border border-black/[0.06] bg-white shadow-[0_24px_80px_rgba(6,20,45,0.07)]">
+                        <div className="bg-[#06142d] px-5 py-8 text-white sm:px-8 sm:py-10">
+                            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-px w-8 bg-cyan-300" />
+
+                                        <p className="text-[7px] font-black uppercase tracking-[0.27em] text-cyan-300">
+                                            Boletería oficial
+                                        </p>
+                                    </div>
+
+                                    <h2 className="mt-4 text-4xl font-black uppercase tracking-[-0.05em] sm:text-5xl">
+                                        Entradas
+                                        <span className="text-cyan-300">
+                                            .
+                                        </span>
+                                    </h2>
+
+                                    <p className="mt-4 max-w-[620px] text-xs leading-6 text-white/45">
+                                        Precios oficiales para Génesis FC vs Olancho FC. Adquiere tus entradas en K9 Store, tienda oficial del equipo.
+                                    </p>
+                                </div>
+
+                                <div className="w-fit rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-5 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+
+                                        <p className="text-[7px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                                            Venta oficial
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-5 sm:p-8">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                                {[
+                                    {
+                                        sector:
+                                            "Silla",
+                                        precio:
+                                            "L 300",
+                                    },
+                                    {
+                                        sector:
+                                            "Sombra",
+                                        precio:
+                                            "L 150",
+                                    },
+                                    {
+                                        sector:
+                                            "Preferencia Norte",
+                                        precio:
+                                            "L 150",
+                                    },
+                                    {
+                                        sector:
+                                            "Preferencia Sur",
+                                        precio:
+                                            "L 150",
+                                    },
+                                    {
+                                        sector:
+                                            "Sol",
+                                        precio:
+                                            "L 100",
+                                    },
+                                ].map(
+                                    (
+                                        entrada
+                                    ) => (
+                                        <div
+                                            key={
+                                                entrada.sector
+                                            }
+                                            className="rounded-[22px] border border-black/[0.07] bg-[#f7f7f5] px-5 py-6 text-center"
+                                        >
+                                            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#06142d] text-base text-white">
+                                                🎟️
+                                            </div>
+
+                                            <p className="mt-4 min-h-[32px] text-[7px] font-black uppercase leading-4 tracking-[0.14em] text-black/45">
+                                                {
+                                                    entrada.sector
+                                                }
+                                            </p>
+
+                                            <p className="mt-3 text-2xl font-black tabular-nums tracking-[-0.05em] text-[#06142d]">
+                                                {
+                                                    entrada.precio
+                                                }
+                                            </p>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            <div className="mt-5 overflow-hidden rounded-[24px] border border-[#168cab]/15 bg-[#eef9fb]">
+                                <div className="grid gap-0 sm:grid-cols-[1fr_auto] sm:items-center">
+                                    <div className="px-5 py-6 sm:px-7">
+                                        <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                                            Punto de venta
+                                        </p>
+
+                                        <div className="mt-3 flex items-center gap-3">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#06142d] text-lg text-white">
+                                                🛍️
+                                            </div>
+
+                                            <div>
+                                                <h3 className="text-lg font-black uppercase tracking-[-0.03em]">
+                                                    K9 Store
+                                                </h3>
+
+                                                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.12em] text-black/35">
+                                                    Tienda oficial de Génesis FC
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-[#168cab]/10 px-5 py-5 sm:border-l sm:border-t-0 sm:px-7">
+                                        <p className="max-w-[280px] text-[8px] font-bold leading-5 text-black/40">
+                                            Compra tus entradas directamente en el punto de venta oficial. Los precios mostrados corresponden a este partido.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
                 PRONÓSTICO
             ================================================= */}
 
