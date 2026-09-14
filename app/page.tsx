@@ -1816,7 +1816,7 @@ export default function Home() {
       </section>
 
       {/* =====================================================
-          CLUB
+          HOME 2.0 · CLUB & TEAM GATEWAY
       ===================================================== */}
 
       <section
@@ -1824,59 +1824,172 @@ export default function Home() {
         aria-labelledby="titulo-club"
         className="bg-[#f4f3ef] px-4 py-16 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
       >
-        <div className="mx-auto grid max-w-[1550px] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-          <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.28em] text-[#168cab]">
-              Nuestra identidad
-            </p>
+        <div className="mx-auto max-w-[1550px]">
+          <div className="flex flex-col gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.28em] text-[#168cab] sm:text-[8px]">
+                Identidad · Historia · Primer equipo
+              </p>
 
-            <h2
-              id="titulo-club"
-              className="mt-5 text-[3.1rem] font-black uppercase leading-[0.8] tracking-[-0.07em] sm:text-[5rem] lg:text-[7.8rem]"
-            >
-              Más que
-              <br />
-              fútbol
-              <span className="text-[#168cab]">
-                .
-              </span>
-            </h2>
-
-            <p className="mt-6 max-w-[620px] text-[12px] leading-6 text-black/50 sm:text-base sm:leading-8">
-              Génesis FC representa pasión, identidad y orgullo. Un club que
-              compite llevando consigo el nombre de La Paz y el sentimiento de
-              toda una afición.
-            </p>
-
-            <Link
-              href="/historia"
-              className={`mt-8 inline-flex rounded-full bg-[#06142d] px-7 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-white transition hover:bg-[#168cab] ${focusLight}`}
-            >
-              Nuestra historia →
-            </Link>
-          </div>
-
-          <div className="relative overflow-hidden rounded-[34px] bg-[#061a3d] p-7 text-white sm:p-12 lg:min-h-[580px]">
-            <div className="relative h-28 w-28 sm:h-40 sm:w-40">
-              <Image
-                src="/genesis.jpg"
-                alt="Escudo de Génesis FC"
-                fill
-                quality={100}
-                sizes="160px"
-                className="object-contain"
-              />
+              <h2
+                id="titulo-club"
+                className="mt-3 text-[2.9rem] font-black uppercase leading-[0.84] tracking-[-0.06em] sm:text-[4.8rem] lg:text-[6rem]"
+              >
+                Somos
+                <span className="text-[#168cab]"> Génesis.</span>
+              </h2>
             </div>
 
-            <p className="mt-8 text-[8px] font-black uppercase tracking-[0.3em] text-cyan-300">
-              Génesis FC
+            <p className="max-w-[520px] text-xs leading-6 text-black/45 sm:text-sm">
+              Conoce de dónde venimos, quiénes representan hoy al club y todo lo que construye la identidad de Génesis FC.
             </p>
+          </div>
 
-            <h3 className="mt-5 text-[2.7rem] font-black uppercase leading-[0.88] tracking-[-0.05em] sm:text-[5.2rem]">
-              Orgullo
-              <br />
-              de La Paz
-            </h3>
+          <div className="mt-8 grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+            <Link
+              href="/historia"
+              className={`group relative overflow-hidden rounded-[34px] bg-[#061a3d] p-7 text-white transition duration-300 hover:-translate-y-1 sm:p-10 lg:min-h-[560px] ${focusDark}`}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(22,140,171,0.28),transparent_34%)]"
+              />
+
+              <div className="relative flex h-full flex-col justify-between">
+                <div>
+                  <div className="relative h-28 w-28 sm:h-36 sm:w-36">
+                    <Image
+                      src="/genesis.jpg"
+                      alt="Escudo de Génesis FC"
+                      fill
+                      quality={100}
+                      sizes="144px"
+                      className="object-contain"
+                    />
+                  </div>
+
+                  <p className="mt-8 text-[7px] font-black uppercase tracking-[0.3em] text-cyan-300">
+                    Nuestra identidad
+                  </p>
+
+                  <h3 className="mt-4 text-[2.8rem] font-black uppercase leading-[0.86] tracking-[-0.055em] sm:text-[4.8rem]">
+                    Orgullo
+                    <br />
+                    de La Paz
+                    <span className="text-cyan-300">.</span>
+                  </h3>
+
+                  <p className="mt-6 max-w-[560px] text-xs leading-6 text-white/48 sm:text-sm sm:leading-7">
+                    Génesis FC representa pasión, identidad y orgullo. Un club que compite llevando consigo el nombre de La Paz y el sentimiento de toda una afición.
+                  </p>
+                </div>
+
+                <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-6">
+                  <p className="text-[7px] font-black uppercase tracking-[0.17em] text-white/60">
+                    Conocer nuestra historia
+                  </p>
+
+                  <span className="text-xl text-cyan-300 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            <div className="grid gap-5">
+              <Link
+                href="/equipo"
+                className={`group rounded-[30px] border border-black/[0.06] bg-white p-6 shadow-[0_20px_60px_rgba(6,20,45,0.05)] transition duration-300 hover:-translate-y-1 sm:p-8 ${focusLight}`}
+              >
+                <div className="flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-[7px] font-black uppercase tracking-[0.22em] text-[#168cab]">
+                      Primer equipo
+                    </p>
+
+                    <h3 className="mt-4 text-3xl font-black uppercase tracking-[-0.045em] sm:text-4xl">
+                      Los nuestros
+                      <span className="text-[#168cab]">.</span>
+                    </h3>
+
+                    <p className="mt-4 max-w-[430px] text-xs leading-6 text-black/45">
+                      Plantel, posiciones y perfiles de los futbolistas que representan a Génesis FC.
+                    </p>
+                  </div>
+
+                  <span className="text-xl text-black/20 transition group-hover:translate-x-1 group-hover:text-[#168cab]">
+                    →
+                  </span>
+                </div>
+
+                <div className="mt-7 grid grid-cols-4 gap-2">
+                  {jugadores.map((jugador) => (
+                    <div
+                      key={`gateway-${jugador.nombre}`}
+                      className="overflow-hidden rounded-[16px] bg-[#06142d]"
+                    >
+                      <div className="relative aspect-[4/5]">
+                        <Image
+                          src={jugador.imagen}
+                          alt={jugador.nombre}
+                          fill
+                          sizes="120px"
+                          className="object-cover object-top"
+                        />
+                      </div>
+
+                      <p className="truncate px-2 py-2 text-center text-[6px] font-black uppercase tracking-[0.1em] text-white/70">
+                        {jugador.nombre}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Link>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Link
+                  href="/buscar"
+                  className={`group rounded-[26px] border border-black/[0.06] bg-[#eaf4f6] p-6 transition hover:-translate-y-1 ${focusLight}`}
+                >
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                    Explorar
+                  </p>
+
+                  <h3 className="mt-3 text-2xl font-black uppercase tracking-[-0.04em]">
+                    Buscar en Génesis
+                  </h3>
+
+                  <p className="mt-3 text-[9px] leading-5 text-black/40">
+                    Encuentra partidos, noticias, historia, equipo y tienda.
+                  </p>
+
+                  <p className="mt-5 text-[7px] font-black uppercase tracking-[0.14em] text-[#06142d]">
+                    Abrir buscador →
+                  </p>
+                </Link>
+
+                <Link
+                  href="/calendario"
+                  className={`group rounded-[26px] border border-black/[0.06] bg-[#06142d] p-6 text-white transition hover:-translate-y-1 ${focusDark}`}
+                >
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                    Competición
+                  </p>
+
+                  <h3 className="mt-3 text-2xl font-black uppercase tracking-[-0.04em]">
+                    Calendario
+                  </h3>
+
+                  <p className="mt-3 text-[9px] leading-5 text-white/40">
+                    Próximos partidos, resultados y clasificación.
+                  </p>
+
+                  <p className="mt-5 text-[7px] font-black uppercase tracking-[0.14em] text-white">
+                    Ver temporada →
+                  </p>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
