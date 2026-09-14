@@ -19,6 +19,9 @@ import {
 const MATCH_SLUG =
     "genesis-vs-olancho-2026-09-19";
 
+const PUBLIC_MATCH_URL =
+    "https://genesisfc.app/partidos/genesis-vs-olancho";
+
 /* =========================================================
    TIPOS
 ========================================================= */
@@ -1615,6 +1618,12 @@ export default function GenesisVsOlanchoPage() {
     ] =
         useState("");
 
+    const [
+        linkCopied,
+        setLinkCopied,
+    ] =
+        useState(false);
+
     /* =====================================================
        CARGAR LIVE OPS
     ===================================================== */
@@ -2289,6 +2298,111 @@ export default function GenesisVsOlanchoPage() {
         "pre_match";
 
     /* =====================================================
+       COMPARTIR PARTIDO
+    ===================================================== */
+
+    const shareText =
+        useMemo(() => {
+            if (!match) {
+                return "Génesis FC vs Olancho FC · Match Center oficial de Génesis FC";
+            }
+
+            if (
+                match.status ===
+                "finished"
+            ) {
+                return `${match.home_team} ${match.home_score}-${match.away_score} ${match.away_team} · Final · Match Center oficial de Génesis FC`;
+            }
+
+            if (
+                match.status !==
+                "pre_match"
+            ) {
+                return `${match.home_team} ${match.home_score}-${match.away_score} ${match.away_team} · ${statusLabel(
+                    match.status
+                )} · Sigue el partido en el Match Center oficial de Génesis FC`;
+            }
+
+            return `${match.home_team} vs ${match.away_team} · Sábado 19 de septiembre · 3:00 PM · Sigue la previa y el partido en el Match Center oficial de Génesis FC`;
+        }, [
+            match,
+        ]);
+
+    function abrirCompartir(
+        url: string
+    ) {
+        window.open(
+            url,
+            "_blank",
+            "noopener,noreferrer"
+        );
+    }
+
+    async function compartirNativo() {
+        try {
+            if (
+                typeof navigator.share ===
+                "function"
+            ) {
+                await navigator.share({
+                    title:
+                        "Génesis FC vs Olancho FC",
+                    text: shareText,
+                    url: PUBLIC_MATCH_URL,
+                });
+
+                return;
+            }
+
+            await copiarEnlace();
+        } catch (
+            cause
+        ) {
+            if (
+                cause instanceof
+                    DOMException &&
+                cause.name ===
+                    "AbortError"
+            ) {
+                return;
+            }
+
+            console.error(
+                "No se pudo compartir el partido.",
+                cause
+            );
+        }
+    }
+
+    async function copiarEnlace() {
+        try {
+            await navigator.clipboard.writeText(
+                PUBLIC_MATCH_URL
+            );
+
+            setLinkCopied(
+                true
+            );
+
+            window.setTimeout(
+                () => {
+                    setLinkCopied(
+                        false
+                    );
+                },
+                2200
+            );
+        } catch (
+            cause
+        ) {
+            console.error(
+                "No se pudo copiar el enlace.",
+                cause
+            );
+        }
+    }
+
+    /* =====================================================
        LOADING
     ===================================================== */
 
@@ -2932,6 +3046,149 @@ export default function GenesisVsOlanchoPage() {
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                COMPARTIR PARTIDO
+            ================================================= */}
+
+            <section className="px-4 pt-8 sm:px-8 sm:pt-10 lg:px-12">
+                <div className="mx-auto max-w-[1200px]">
+                    <div className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_65px_rgba(6,20,45,0.05)]">
+                        <div className="grid gap-0 lg:grid-cols-[0.82fr_1.18fr]">
+                            <div className="bg-[#071a3b] px-5 py-7 text-white sm:px-8 sm:py-8">
+                                <div className="flex items-center gap-3">
+                                    <span className="h-px w-8 bg-cyan-300" />
+
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                                        Comparte el Match Center
+                                    </p>
+                                </div>
+
+                                <h2 className="mt-4 text-3xl font-black uppercase tracking-[-0.05em] sm:text-4xl">
+                                    Vive Génesis
+                                    <span className="text-cyan-300">
+                                        .
+                                    </span>
+                                </h2>
+
+                                <p className="mt-4 max-w-[430px] text-xs leading-6 text-white/45">
+                                    Envía el partido a otros aficionados y síganlo juntos desde el Match Center oficial.
+                                </p>
+                            </div>
+
+                            <div className="p-5 sm:p-8">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                                    <button
+                                        type="button"
+                                        onClick={
+                                            compartirNativo
+                                        }
+                                        className="col-span-2 flex min-h-[92px] flex-col items-center justify-center rounded-[20px] bg-[#06142d] px-4 py-4 text-center text-white transition hover:bg-[#0b234d] sm:col-span-1"
+                                    >
+                                        <span className="text-xl">
+                                            ↗
+                                        </span>
+
+                                        <span className="mt-2 text-[7px] font-black uppercase tracking-[0.14em]">
+                                            Compartir
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            abrirCompartir(
+                                                `https://wa.me/?text=${encodeURIComponent(
+                                                    `${shareText} ${PUBLIC_MATCH_URL}`
+                                                )}`
+                                            )
+                                        }
+                                        className="flex min-h-[92px] flex-col items-center justify-center rounded-[20px] border border-black/[0.07] bg-[#f7f7f5] px-4 py-4 text-center transition hover:border-[#168cab]/30 hover:bg-[#eef8fa]"
+                                    >
+                                        <span className="text-base font-black text-emerald-600">
+                                            WA
+                                        </span>
+
+                                        <span className="mt-2 text-[7px] font-black uppercase tracking-[0.14em]">
+                                            WhatsApp
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            abrirCompartir(
+                                                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                                                    PUBLIC_MATCH_URL
+                                                )}`
+                                            )
+                                        }
+                                        className="flex min-h-[92px] flex-col items-center justify-center rounded-[20px] border border-black/[0.07] bg-[#f7f7f5] px-4 py-4 text-center transition hover:border-[#168cab]/30 hover:bg-[#eef8fa]"
+                                    >
+                                        <span className="text-base font-black text-[#1877f2]">
+                                            f
+                                        </span>
+
+                                        <span className="mt-2 text-[7px] font-black uppercase tracking-[0.14em]">
+                                            Facebook
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            abrirCompartir(
+                                                `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                                                    shareText
+                                                )}&url=${encodeURIComponent(
+                                                    PUBLIC_MATCH_URL
+                                                )}`
+                                            )
+                                        }
+                                        className="flex min-h-[92px] flex-col items-center justify-center rounded-[20px] border border-black/[0.07] bg-[#f7f7f5] px-4 py-4 text-center transition hover:border-[#168cab]/30 hover:bg-[#eef8fa]"
+                                    >
+                                        <span className="text-base font-black">
+                                            X
+                                        </span>
+
+                                        <span className="mt-2 text-[7px] font-black uppercase tracking-[0.14em]">
+                                            X
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={
+                                            copiarEnlace
+                                        }
+                                        className={`flex min-h-[92px] flex-col items-center justify-center rounded-[20px] border px-4 py-4 text-center transition ${
+                                            linkCopied
+                                                ? "border-emerald-500/25 bg-emerald-500/[0.07]"
+                                                : "border-black/[0.07] bg-[#f7f7f5] hover:border-[#168cab]/30 hover:bg-[#eef8fa]"
+                                        }`}
+                                    >
+                                        <span className="text-base font-black text-[#168cab]">
+                                            {linkCopied
+                                                ? "✓"
+                                                : "⌁"}
+                                        </span>
+
+                                        <span className="mt-2 text-[7px] font-black uppercase tracking-[0.14em]">
+                                            {linkCopied
+                                                ? "Copiado"
+                                                : "Copiar enlace"}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <p className="mt-5 text-center text-[6px] font-black uppercase tracking-[0.14em] text-black/25 sm:text-left">
+                                    genesisfc.app · Match Center oficial
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
