@@ -344,12 +344,141 @@ function CuentaRegresiva() {
 }
 
 /* =========================================================
+   HOME 2.0 · ESTADO DEL PARTIDO
+========================================================= */
+
+type HomeMatchStatus =
+  | "pre_match"
+  | "first_half"
+  | "halftime"
+  | "second_half"
+  | "paused"
+  | "finished";
+
+type HomeLiveMatch = {
+  slug: string;
+  home_team: string;
+  away_team: string;
+  home_score: number;
+  away_score: number;
+  status: HomeMatchStatus;
+  is_live: boolean;
+  scheduled_at: string;
+};
+
+type HomeLiveResponse = {
+  ok: boolean;
+  match?: HomeLiveMatch;
+};
+
+const HOME_MATCH_SLUG =
+  "genesis-vs-olancho-2026-09-19";
+
+function etiquetaEstadoPartido(
+  status?: HomeMatchStatus
+) {
+  switch (status) {
+    case "first_half":
+      return "1T";
+    case "halftime":
+      return "MEDIO TIEMPO";
+    case "second_half":
+      return "2T";
+    case "paused":
+      return "PAUSADO";
+    case "finished":
+      return "FINAL";
+    default:
+      return "PRÓXIMO PARTIDO";
+  }
+}
+
+/* =========================================================
    HOME
 ========================================================= */
 
 export default function Home() {
   const [menuOpen, setMenuOpen] =
     useState(false);
+
+  const [liveMatch, setLiveMatch] =
+    useState<HomeLiveMatch | null>(
+      null
+    );
+
+  useEffect(() => {
+    let activo = true;
+
+    async function cargarEstadoPartido() {
+      try {
+        const response = await fetch(
+          `/api/live?slug=${encodeURIComponent(
+            HOME_MATCH_SLUG
+          )}`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data =
+          (await response.json()) as HomeLiveResponse;
+
+        if (
+          activo &&
+          data.ok &&
+          data.match
+        ) {
+          setLiveMatch(data.match);
+        }
+      } catch {
+        // El Home conserva su contenido estático si Live Ops no responde.
+      }
+    }
+
+    cargarEstadoPartido();
+
+    const poll = window.setInterval(
+      cargarEstadoPartido,
+      5000
+    );
+
+    return () => {
+      activo = false;
+      window.clearInterval(poll);
+    };
+  }, []);
+
+  const partidoEnVivo =
+    liveMatch?.status ===
+      "first_half" ||
+    liveMatch?.status ===
+      "halftime" ||
+    liveMatch?.status ===
+      "second_half" ||
+    liveMatch?.status ===
+      "paused";
+
+  const partidoFinalizado =
+    liveMatch?.status ===
+    "finished";
+
+  const mostrarCuentaRegresiva =
+    !partidoEnVivo &&
+    !partidoFinalizado;
+
+  const estadoPartido =
+    etiquetaEstadoPartido(
+      liveMatch?.status
+    );
+
+  const marcadorHome =
+    liveMatch
+      ? `${liveMatch.home_score} - ${liveMatch.away_score}`
+      : "0 - 0";
 
   const focusDark =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020817]";
@@ -579,12 +708,67 @@ export default function Home() {
             Orgullo de La Paz. Una ciudad, un escudo, una identidad.
           </p>
 
+          <Link
+            href="/partidos/genesis-vs-olancho"
+            className={`mt-6 block rounded-[20px] border px-4 py-4 transition ${
+              partidoEnVivo
+                ? "border-emerald-300/35 bg-emerald-300/[0.10]"
+                : partidoFinalizado
+                  ? "border-cyan-300/25 bg-cyan-300/[0.07]"
+                  : "border-white/10 bg-white/[0.04]"
+            } ${focusDark}`}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={`h-2 w-2 rounded-full ${
+                      partidoEnVivo
+                        ? "animate-pulse bg-emerald-300"
+                        : "bg-cyan-300"
+                    }`}
+                  />
+
+                  <p
+                    className={`text-[6px] font-black uppercase tracking-[0.19em] ${
+                      partidoEnVivo
+                        ? "text-emerald-300"
+                        : "text-cyan-300"
+                    }`}
+                  >
+                    {estadoPartido}
+                  </p>
+                </div>
+
+                <p className="mt-2 text-[11px] font-black uppercase">
+                  Génesis FC vs Olancho FC
+                </p>
+
+                <p className="mt-1 text-[7px] font-bold uppercase tracking-[0.12em] text-white/35">
+                  {partidoEnVivo ||
+                  partidoFinalizado
+                    ? `Marcador ${marcadorHome}`
+                    : "19 SEP 2026 · 3:00 PM"}
+                </p>
+              </div>
+
+              <span className="text-lg text-cyan-300">
+                →
+              </span>
+            </div>
+          </Link>
+
           <div className="mt-7 flex flex-col gap-2.5">
             <a
               href="#partidos"
               className={`rounded-full bg-white px-6 py-3.5 text-center text-[7px] font-black uppercase tracking-[0.13em] text-[#020817] ${focusDark}`}
             >
-              Próximo partido →
+              {partidoEnVivo
+                ? "Seguir en vivo →"
+                : partidoFinalizado
+                  ? "Ver resultado →"
+                  : "Próximo partido →"}
             </a>
 
             <Link
@@ -647,12 +831,65 @@ export default function Home() {
               Orgullo de La Paz. Una ciudad, un escudo, una identidad.
             </p>
 
+            <Link
+              href="/partidos/genesis-vs-olancho"
+              className={`mt-8 inline-flex min-w-[420px] items-center justify-between gap-8 rounded-[22px] border px-6 py-5 backdrop-blur-xl transition ${
+                partidoEnVivo
+                  ? "border-emerald-300/35 bg-emerald-300/[0.10]"
+                  : partidoFinalizado
+                    ? "border-cyan-300/25 bg-cyan-300/[0.07]"
+                    : "border-white/10 bg-white/[0.05]"
+              } ${focusDark}`}
+            >
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className={`h-2 w-2 rounded-full ${
+                      partidoEnVivo
+                        ? "animate-pulse bg-emerald-300"
+                        : "bg-cyan-300"
+                    }`}
+                  />
+
+                  <p
+                    className={`text-[7px] font-black uppercase tracking-[0.22em] ${
+                      partidoEnVivo
+                        ? "text-emerald-300"
+                        : "text-cyan-300"
+                    }`}
+                  >
+                    {estadoPartido}
+                  </p>
+                </div>
+
+                <p className="mt-2 text-sm font-black uppercase">
+                  Génesis FC vs Olancho FC
+                </p>
+
+                <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">
+                  {partidoEnVivo ||
+                  partidoFinalizado
+                    ? `Marcador ${marcadorHome}`
+                    : "19 SEP 2026 · 3:00 PM · LA PAZ"}
+                </p>
+              </div>
+
+              <span className="text-xl text-cyan-300">
+                →
+              </span>
+            </Link>
+
             <div className="mt-10 flex gap-3">
               <a
                 href="#partidos"
                 className={`rounded-full bg-white px-8 py-4 text-center text-[9px] font-black uppercase tracking-[0.17em] text-[#020817] ${focusDark}`}
               >
-                Próximo partido →
+                {partidoEnVivo
+                  ? "Seguir en vivo →"
+                  : partidoFinalizado
+                    ? "Ver resultado →"
+                    : "Próximo partido →"}
               </a>
 
               <Link
@@ -905,15 +1142,29 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-[1500px] px-4 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
           <div className="text-center">
-            <p className="text-[8px] font-black uppercase tracking-[0.28em] text-cyan-300">
-              Liga Nacional · Jornada 8
+            <p
+              className={`text-[8px] font-black uppercase tracking-[0.28em] ${
+                partidoEnVivo
+                  ? "text-emerald-300"
+                  : "text-cyan-300"
+              }`}
+            >
+              {partidoEnVivo
+                ? `EN VIVO · ${estadoPartido}`
+                : partidoFinalizado
+                  ? "FINAL · LIGA NACIONAL · JORNADA 8"
+                  : "Liga Nacional · Jornada 8"}
             </p>
 
             <h2
               id="titulo-proximo-partido"
               className="mt-4 text-4xl font-black uppercase tracking-[-0.05em] sm:text-6xl"
             >
-              Próximo desafío
+              {partidoEnVivo
+                ? "Partido en vivo"
+                : partidoFinalizado
+                  ? "Resultado final"
+                  : "Próximo desafío"}
             </h2>
 
             <p className="mt-3 text-[10px] text-white/45 sm:text-sm">
@@ -921,7 +1172,29 @@ export default function Home() {
             </p>
           </div>
 
-          <CuentaRegresiva />
+          {mostrarCuentaRegresiva ? (
+            <CuentaRegresiva />
+          ) : (
+            <div className="mx-auto mt-10 max-w-[760px] rounded-[28px] border border-white/10 bg-white/[0.04] px-6 py-8 text-center">
+              <p
+                className={`text-[7px] font-black uppercase tracking-[0.24em] ${
+                  partidoEnVivo
+                    ? "text-emerald-300"
+                    : "text-cyan-300"
+                }`}
+              >
+                {estadoPartido}
+              </p>
+
+              <p className="mt-3 text-5xl font-black tabular-nums tracking-[-0.07em] sm:text-7xl">
+                {marcadorHome}
+              </p>
+
+              <p className="mt-3 text-[8px] font-black uppercase tracking-[0.16em] text-white/30">
+                Génesis FC · Olancho FC
+              </p>
+            </div>
+          )}
 
           <Link
             href="/partidos/genesis-vs-olancho"
@@ -955,11 +1228,25 @@ export default function Home() {
                   aria-hidden="true"
                   className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.05] text-[8px] font-black transition duration-300 group-hover:border-cyan-300/40 group-hover:bg-cyan-300 group-hover:text-[#06142d] sm:h-20 sm:w-20"
                 >
-                  VS
+                  {partidoEnVivo
+                    ? estadoPartido
+                    : partidoFinalizado
+                      ? "FT"
+                      : "VS"}
                 </div>
 
-                <p className="mt-4 hidden text-[6px] font-black uppercase tracking-[0.18em] text-cyan-300 sm:block">
-                  Ver partido
+                <p
+                  className={`mt-4 hidden text-[6px] font-black uppercase tracking-[0.18em] sm:block ${
+                    partidoEnVivo
+                      ? "text-emerald-300"
+                      : "text-cyan-300"
+                  }`}
+                >
+                  {partidoEnVivo
+                    ? marcadorHome
+                    : partidoFinalizado
+                      ? marcadorHome
+                      : "Ver partido"}
                 </p>
               </div>
 
@@ -991,7 +1278,11 @@ export default function Home() {
               </p>
 
               <div className="mt-5 inline-flex items-center gap-3 rounded-full bg-cyan-300 px-6 py-3 text-[7px] font-black uppercase tracking-[0.15em] text-[#06142d] transition group-hover:bg-white sm:text-[8px]">
-                Siguiente partido
+                {partidoEnVivo
+                  ? "En vivo ahora"
+                  : partidoFinalizado
+                    ? "Resultado final"
+                    : "Siguiente partido"}
                 <span aria-hidden="true">
                   →
                 </span>
@@ -1004,7 +1295,11 @@ export default function Home() {
               href="/partidos/genesis-vs-olancho"
               className={`inline-flex w-full items-center justify-center rounded-full bg-cyan-300 px-7 py-4 text-[8px] font-black uppercase tracking-[0.15em] text-[#05142f] transition duration-300 hover:bg-white sm:w-auto ${focusDark}`}
             >
-              Ver siguiente partido →
+              {partidoEnVivo
+                ? "Seguir partido en vivo →"
+                : partidoFinalizado
+                  ? "Ver resumen del partido →"
+                  : "Ver siguiente partido →"}
             </Link>
 
             <Link
