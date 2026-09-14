@@ -913,20 +913,49 @@ export default function Home() {
         className="bg-[#f3f3f2] px-4 py-14 text-[#06142d] sm:px-8 sm:py-20 lg:px-12 lg:py-28 xl:px-16"
       >
         <div className="mx-auto max-w-[1600px]">
-          <div className="border-b border-black/10 pb-7">
-            <p className="text-[7px] font-black uppercase tracking-[0.26em] text-[#0d72d6] sm:text-[9px]">
-              Actualidad del club
-            </p>
+          <div className="flex flex-col gap-6 border-b border-black/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.26em] text-[#0d72d6] sm:text-[9px]">
+                Génesis Newsroom
+              </p>
 
-            <h2
-              id="titulo-noticias"
-              className="mt-3 text-[2.9rem] font-black uppercase leading-[0.85] tracking-[-0.06em] sm:text-[4.5rem] lg:text-[6.6rem]"
+              <h2
+                id="titulo-noticias"
+                className="mt-3 text-[2.9rem] font-black uppercase leading-[0.85] tracking-[-0.06em] sm:text-[4.5rem] lg:text-[6.6rem]"
+              >
+                Lo último
+                <span className="text-[#1699bd]">
+                  .
+                </span>
+              </h2>
+
+              <p className="mt-4 max-w-[620px] text-xs font-medium leading-6 text-[#06142d]/50 sm:text-sm">
+                Noticias, resultados e historias del club en un solo lugar.
+              </p>
+            </div>
+
+            <Link
+              href="/noticias"
+              className={`w-fit rounded-full border border-[#06142d]/15 px-5 py-3 text-[7px] font-black uppercase tracking-[0.15em] transition hover:border-[#168cab] hover:bg-[#168cab] hover:text-white sm:text-[8px] ${focusLight}`}
             >
-              Lo último
-              <span className="text-[#1699bd]">
-                .
-              </span>
-            </h2>
+              Ver todas las noticias →
+            </Link>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[#06142d] px-4 py-2 text-[6px] font-black uppercase tracking-[0.16em] text-white sm:text-[7px]">
+              En portada
+            </span>
+
+            {noticias.map((noticia) => (
+              <Link
+                key={`portada-${noticia.titulo}`}
+                href={noticia.enlace}
+                className={`rounded-full border border-black/10 bg-white px-4 py-2 text-[6px] font-black uppercase tracking-[0.12em] text-[#06142d]/60 transition hover:border-[#168cab]/40 hover:text-[#168cab] sm:text-[7px] ${focusLight}`}
+              >
+                {noticia.titulo}
+              </Link>
+            ))}
           </div>
 
           {/* NOTICIA PRINCIPAL */}
@@ -1123,6 +1152,24 @@ export default function Home() {
                 );
               })}
           </div>
+
+          <div className="mt-8 flex flex-col gap-4 rounded-[24px] border border-black/10 bg-white/55 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+            <div>
+              <p className="text-[6px] font-black uppercase tracking-[0.2em] text-[#168cab] sm:text-[7px]">
+                Archivo oficial
+              </p>
+              <p className="mt-1 text-xs font-bold text-[#06142d]/55 sm:text-sm">
+                Explora todas las noticias publicadas por Génesis FC.
+              </p>
+            </div>
+
+            <Link
+              href="/noticias"
+              className={`w-fit text-[7px] font-black uppercase tracking-[0.15em] text-[#06142d] transition hover:text-[#168cab] sm:text-[8px] ${focusLight}`}
+            >
+              Ir al centro de noticias →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -1275,17 +1322,17 @@ export default function Home() {
                 12 SEP 2026 · Liga Nacional
               </p>
 
-              <div className="mt-6 flex items-end justify-between gap-4">
+              <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
                 <div>
                   <p className="text-lg font-black uppercase">Motagua</p>
                   <p className="mt-2 text-[7px] font-black uppercase tracking-[0.14em] text-black/30">Local</p>
                 </div>
 
-                <p className="text-5xl font-black tracking-[-0.08em]">
-                  1
+                <div className="flex items-center whitespace-nowrap text-5xl font-black leading-none tracking-[-0.08em]">
+                  <span>1</span>
                   <span className="mx-2 text-black/15">–</span>
                   <span className="text-[#168cab]">0</span>
-                </p>
+                </div>
 
                 <div className="text-right">
                   <p className="text-lg font-black uppercase">Génesis</p>
