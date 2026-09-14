@@ -1127,6 +1127,226 @@ export default function Home() {
       </section>
 
       {/* =====================================================
+          HOME 2.0 · ACTUALIDAD DEPORTIVA
+      ===================================================== */}
+
+      <section className="bg-[#eef0ef] px-4 py-14 text-[#06142d] sm:px-8 sm:py-20 lg:px-12 lg:py-24 xl:px-16">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="flex flex-col gap-6 border-b border-black/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.28em] text-[#168cab] sm:text-[8px]">
+                Ahora en Génesis
+              </p>
+
+              <h2 className="mt-3 text-[2.8rem] font-black uppercase leading-[0.84] tracking-[-0.06em] sm:text-[4.8rem] lg:text-[6rem]">
+                Actualidad
+                <span className="text-[#168cab]">.</span>
+              </h2>
+            </div>
+
+            <Link
+              href="/calendario"
+              className={`w-fit rounded-full border border-black/10 bg-white px-6 py-3.5 text-[7px] font-black uppercase tracking-[0.15em] transition hover:border-[#168cab]/30 hover:bg-[#06142d] hover:text-white ${focusLight}`}
+            >
+              Calendario y tabla →
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-4 lg:grid-cols-[1.15fr_0.85fr_0.85fr]">
+            <Link
+              href="/partidos/genesis-vs-olancho"
+              className={`group relative overflow-hidden rounded-[28px] bg-[#06142d] p-6 text-white shadow-[0_20px_60px_rgba(6,20,45,0.08)] transition hover:-translate-y-1 sm:p-8 ${focusLight}`}
+            >
+              <div className="absolute right-[-70px] top-[-70px] h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
+
+              <div className="relative flex h-full min-h-[290px] flex-col justify-between">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className={`h-2 w-2 rounded-full ${
+                          partidoEnVivo
+                            ? "animate-pulse bg-emerald-300"
+                            : "bg-cyan-300"
+                        }`}
+                      />
+
+                      <p
+                        className={`text-[7px] font-black uppercase tracking-[0.2em] ${
+                          partidoEnVivo
+                            ? "text-emerald-300"
+                            : "text-cyan-300"
+                        }`}
+                      >
+                        {estadoPartido}
+                      </p>
+                    </div>
+
+                    <p className="mt-4 text-[7px] font-black uppercase tracking-[0.18em] text-white/30">
+                      Liga Nacional · Jornada 8
+                    </p>
+                  </div>
+
+                  <span className="text-xl text-cyan-300 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                <div className="mt-10">
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                    <div>
+                      <div className="relative h-16 w-16 sm:h-20 sm:w-20">
+                        <Image
+                          src="/genesis.jpg"
+                          alt="Escudo de Génesis FC"
+                          fill
+                          quality={100}
+                          sizes="80px"
+                          className="object-contain"
+                        />
+                      </div>
+
+                      <p className="mt-3 text-xs font-black uppercase sm:text-sm">
+                        Génesis FC
+                      </p>
+                    </div>
+
+                    <div className="text-center">
+                      {partidoEnVivo || partidoFinalizado ? (
+                        <>
+                          <p className="text-[6px] font-black uppercase tracking-[0.18em] text-white/30">
+                            {estadoPartido}
+                          </p>
+                          <p className="mt-2 text-4xl font-black tabular-nums tracking-[-0.06em] text-cyan-300 sm:text-5xl">
+                            {marcadorHome}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-2xl font-black text-white/20">VS</p>
+                          <p className="mt-2 text-[6px] font-black uppercase tracking-[0.14em] text-white/30">
+                            19 SEP · 3:00 PM
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="text-right">
+                      <div className="relative ml-auto h-16 w-16 sm:h-20 sm:w-20">
+                        <Image
+                          src="/olancho.png"
+                          alt="Escudo de Olancho FC"
+                          fill
+                          quality={100}
+                          sizes="80px"
+                          className="object-contain"
+                        />
+                      </div>
+
+                      <p className="mt-3 text-xs font-black uppercase sm:text-sm">
+                        Olancho FC
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-6 text-[8px] font-bold uppercase tracking-[0.12em] text-white/35">
+                    Estadio Roberto Suazo Córdova · La Paz
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/noticias/motagua-1-0-genesis"
+              className={`group rounded-[28px] border border-black/[0.06] bg-white p-6 shadow-[0_20px_60px_rgba(6,20,45,0.05)] transition hover:-translate-y-1 sm:p-8 ${focusLight}`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                  Último resultado
+                </p>
+
+                <span className="text-sm text-black/25 transition group-hover:translate-x-1 group-hover:text-[#168cab]">
+                  →
+                </span>
+              </div>
+
+              <p className="mt-8 text-[7px] font-black uppercase tracking-[0.16em] text-black/25">
+                12 SEP 2026 · Liga Nacional
+              </p>
+
+              <div className="mt-6 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-lg font-black uppercase">Motagua</p>
+                  <p className="mt-2 text-[7px] font-black uppercase tracking-[0.14em] text-black/30">Local</p>
+                </div>
+
+                <p className="text-5xl font-black tracking-[-0.08em]">
+                  1
+                  <span className="mx-2 text-black/15">–</span>
+                  <span className="text-[#168cab]">0</span>
+                </p>
+
+                <div className="text-right">
+                  <p className="text-lg font-black uppercase">Génesis</p>
+                  <p className="mt-2 text-[7px] font-black uppercase tracking-[0.14em] text-black/30">Visitante</p>
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[18px] bg-red-50 px-4 py-3">
+                <p className="text-[7px] font-black uppercase tracking-[0.16em] text-red-700">
+                  Derrota · 1-0
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              href="/calendario"
+              className={`group rounded-[28px] border border-black/[0.06] bg-white p-6 shadow-[0_20px_60px_rgba(6,20,45,0.05)] transition hover:-translate-y-1 sm:p-8 ${focusLight}`}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#168cab]">
+                  Forma reciente
+                </p>
+
+                <span className="text-sm text-black/25 transition group-hover:translate-x-1 group-hover:text-[#168cab]">
+                  →
+                </span>
+              </div>
+
+              <p className="mt-8 text-4xl font-black uppercase tracking-[-0.05em]">
+                Últimos 4
+              </p>
+
+              <div className="mt-7 flex gap-2.5">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-[9px] font-black text-red-700">D</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-[9px] font-black text-emerald-700">V</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-[9px] font-black text-red-700">D</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e8f2f5] text-[9px] font-black text-[#137c99]">E</span>
+              </div>
+
+              <div className="mt-8 grid grid-cols-3 gap-2 border-t border-black/[0.06] pt-6">
+                <div>
+                  <p className="text-2xl font-black">1</p>
+                  <p className="mt-1 text-[6px] font-black uppercase tracking-[0.12em] text-black/30">Victoria</p>
+                </div>
+
+                <div>
+                  <p className="text-2xl font-black">1</p>
+                  <p className="mt-1 text-[6px] font-black uppercase tracking-[0.12em] text-black/30">Empate</p>
+                </div>
+
+                <div>
+                  <p className="text-2xl font-black">2</p>
+                  <p className="mt-1 text-[6px] font-black uppercase tracking-[0.12em] text-black/30">Derrotas</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
           PRÓXIMO PARTIDO
       ===================================================== */}
 
