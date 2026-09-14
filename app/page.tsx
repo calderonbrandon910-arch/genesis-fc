@@ -1983,7 +1983,7 @@ export default function Home() {
       </section>
 
       {/* =====================================================
-          TIENDA
+          HOME 2.0 · COMMERCE GATEWAY
       ===================================================== */}
 
       <section
@@ -1991,41 +1991,96 @@ export default function Home() {
         className="bg-[#f3f3f2] px-4 py-16 sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
       >
         <div className="mx-auto max-w-[1550px]">
-          <div className="grid overflow-hidden rounded-[34px] bg-[#0757bb] text-white lg:grid-cols-[0.85fr_1.15fr]">
-            <div className="flex flex-col justify-center p-7 sm:p-12 lg:p-16">
-              <p className="text-[8px] font-black uppercase tracking-[0.28em] text-cyan-200">
-                Tienda oficial
+          <div className="mb-8 flex flex-col gap-5 border-b border-black/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[7px] font-black uppercase tracking-[0.27em] text-[#168cab] sm:text-[8px]">
+                K9 Store · Tienda Oficial
               </p>
 
               <h2
                 id="titulo-tienda"
-                className="mt-5 text-[3rem] font-black uppercase leading-[0.82] tracking-[-0.06em] sm:text-[5.5rem]"
+                className="mt-3 text-[2.8rem] font-black uppercase leading-[0.84] tracking-[-0.06em] text-[#06142d] sm:text-[4.8rem] lg:text-[6rem]"
               >
+                Commerce
+                <span className="text-[#168cab]">.</span>
+              </h2>
+            </div>
+
+            <Link
+              href="/tienda"
+              className={`w-fit rounded-full border border-[#06142d]/15 px-5 py-3 text-[7px] font-black uppercase tracking-[0.15em] text-[#06142d] transition hover:border-[#168cab] hover:bg-[#168cab] hover:text-white sm:text-[8px] ${focusLight}`}
+            >
+              Ver tienda completa →
+            </Link>
+          </div>
+
+          <div className="grid overflow-hidden rounded-[34px] bg-[#0757bb] text-white lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="flex flex-col justify-center p-7 sm:p-12 lg:p-16">
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-[6px] font-black uppercase tracking-[0.16em] text-cyan-200">
+                  Producto oficial
+                </span>
+
+                <span className="rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-[6px] font-black uppercase tracking-[0.16em] text-white/60">
+                  K9 Store
+                </span>
+              </div>
+
+              <h3 className="mt-6 text-[3rem] font-black uppercase leading-[0.82] tracking-[-0.06em] sm:text-[5.5rem]">
                 Lleva
                 <br />
                 el escudo
                 <br />
                 contigo
-                <span className="text-cyan-200">
-                  .
-                </span>
-              </h2>
+                <span className="text-cyan-200">.</span>
+              </h3>
 
-              <p className="mt-6 max-w-[450px] text-[12px] leading-6 text-white/60 sm:text-base">
+              <p className="mt-6 max-w-[470px] text-[12px] leading-6 text-white/65 sm:text-base">
                 La camiseta oficial de Génesis FC. Nuestra identidad, nuestros
                 colores y nuestra ciudad.
               </p>
 
-              <Link
-                href="/tienda"
-                aria-label="Abrir Tienda Oficial de Génesis FC"
-                className={`mt-8 inline-flex w-fit items-center justify-center rounded-full bg-white px-7 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-[#05142f] transition hover:bg-cyan-200 ${focusLight}`}
-              >
-                Entrar a la tienda →
-              </Link>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/tienda"
+                  aria-label="Abrir Tienda Oficial de Génesis FC"
+                  className={`inline-flex items-center justify-center rounded-full bg-white px-6 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-[#05142f] transition hover:bg-cyan-200 ${focusLight}`}
+                >
+                  Comprar ahora →
+                </Link>
+
+                <Link
+                  href="/tienda/seguimiento"
+                  aria-label="Seguir pedido de la Tienda Oficial"
+                  className={`inline-flex items-center justify-center rounded-full border border-white/20 bg-white/[0.05] px-6 py-4 text-[8px] font-black uppercase tracking-[0.13em] text-white transition hover:bg-white hover:text-[#05142f] ${focusDark}`}
+                >
+                  Seguir mi pedido →
+                </Link>
+              </div>
+
+              <div className="mt-8 grid grid-cols-3 gap-2 border-t border-white/10 pt-6">
+                {[
+                  ["Stock", "Control"],
+                  ["Entrega", "Estimación"],
+                  ["Favoritos", "Próximamente"],
+                ].map(([titulo, detalle]) => (
+                  <div
+                    key={titulo}
+                    className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-3"
+                  >
+                    <p className="text-[6px] font-black uppercase tracking-[0.14em] text-cyan-200">
+                      {titulo}
+                    </p>
+
+                    <p className="mt-1 text-[6px] font-black uppercase tracking-[0.11em] text-white/35">
+                      {detalle}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="relative min-h-[420px] sm:min-h-[680px]">
+            <div className="relative min-h-[460px] sm:min-h-[720px]">
               <Image
                 src="/tienda-camiseta.png"
                 alt="Camiseta oficial de Génesis FC"
@@ -2033,6 +2088,35 @@ export default function Home() {
                 sizes="(max-width:1023px) 100vw,60vw"
                 className="object-cover object-top"
               />
+
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-[#041126]/55 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#0757bb]/20 lg:via-transparent lg:to-transparent"
+              />
+
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-10">
+                <div className="ml-auto max-w-[360px] rounded-[24px] border border-white/15 bg-[#020817]/80 p-5 backdrop-blur-xl sm:p-6">
+                  <p className="text-[7px] font-black uppercase tracking-[0.2em] text-cyan-300">
+                    Comercio oficial
+                  </p>
+
+                  <p className="mt-3 text-xl font-black uppercase sm:text-2xl">
+                    K9 Store
+                  </p>
+
+                  <p className="mt-2 text-[9px] leading-5 text-white/45">
+                    Compra, seguimiento y futuras funciones de Commerce Center
+                    desde el ecosistema digital de Génesis FC.
+                  </p>
+
+                  <Link
+                    href="/tienda"
+                    className={`mt-5 inline-flex text-[7px] font-black uppercase tracking-[0.15em] text-white transition hover:text-cyan-300 ${focusDark}`}
+                  >
+                    Entrar al Commerce Center →
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
