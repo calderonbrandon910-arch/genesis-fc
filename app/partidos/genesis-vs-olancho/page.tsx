@@ -251,6 +251,20 @@ type ReactionApiResponse = {
     total?: number;
 };
 
+type MvpRankingItem = {
+    player_id: string;
+    votes: number;
+};
+
+type MvpApiResponse = {
+    ok: boolean;
+    error?: string;
+    already_voted?: boolean;
+    player_id?: string;
+    total?: number;
+    ranking?: MvpRankingItem[];
+};
+
 /* =========================================================
    FORMA RECIENTE GÉNESIS
 ========================================================= */
@@ -1690,6 +1704,46 @@ export default function GenesisVsOlanchoPage() {
             null
         );
 
+    const [
+        mvpRanking,
+        setMvpRanking,
+    ] =
+        useState<MvpRankingItem[]>(
+            []
+        );
+
+    const [
+        mvpTotal,
+        setMvpTotal,
+    ] =
+        useState(0);
+
+    const [
+        mvpLoading,
+        setMvpLoading,
+    ] =
+        useState(false);
+
+    const [
+        mvpVoting,
+        setMvpVoting,
+    ] =
+        useState(false);
+
+    const [
+        myMvp,
+        setMyMvp,
+    ] =
+        useState<string | null>(
+            null
+        );
+
+    const [
+        mvpError,
+        setMvpError,
+    ] =
+        useState("");
+
     /* =====================================================
        CARGAR LIVE OPS
     ===================================================== */
@@ -2362,6 +2416,295 @@ export default function GenesisVsOlanchoPage() {
     const enPartido =
         match?.status !==
         "pre_match";
+
+    const mvpCandidates =
+        useMemo(() => {
+            if (!match) {
+                return [];
+            }
+
+            return lineups
+                .filter(
+                    (player) =>
+                        Boolean(
+                            player.id &&
+                                player.player_name
+                        )
+                )
+                .sort(
+                    (a, b) => {
+                        if (
+                            a.team !==
+                            b.team
+                        ) {
+                            if (
+                                a.team ===
+                                match.home_team
+                            ) {
+                                return -1;
+                            }
+
+                            if (
+                                b.team ===
+                                match.home_team
+                            ) {
+                                return 1;
+                            }
+                        }
+
+                        if (
+                            a.is_starter !==
+                            b.is_starter
+                        ) {
+                            return a.is_starter
+                                ? -1
+                                : 1;
+                        }
+
+                        return (
+                            a.sort_order -
+                            b.sort_order
+                        );
+                    }
+                );
+        }, [
+            lineups,
+            match,
+        ]);
+
+    const mvpLeader =
+        useMemo(() => {
+            const leader =
+                mvpRanking[0];
+
+            if (!leader) {
+                return null;
+            }
+
+            const player =
+                mvpCandidates.find(
+                    (candidate) =>
+                        candidate.id ===
+                        leader.player_id
+                );
+
+            if (!player) {
+                return null;
+            }
+
+            return {
+                player,
+                votes:
+                    leader.votes,
+            };
+        }, [
+            mvpCandidates,
+            mvpRanking,
+        ]);
+
+    /* =====================================================
+       MVP DE LA AFICIÓN
+    ===================================================== */
+
+    const cargarMvp =
+        useCallback(
+            async (
+                silencioso =
+                    false
+            ) => {
+                try {
+                    if (
+                        !silencioso
+                    ) {
+                        setMvpLoading(
+                            true
+                        );
+                    }
+
+                    const response =
+                        await fetch(
+                            `/api/mvp?match_slug=${encodeURIComponent(
+                                MATCH_SLUG
+                            )}`,
+                            {
+                                cache:
+                                    "no-store",
+                            }
+                        );
+
+                    const data =
+                        (await response.json()) as MvpApiResponse;
+
+                    if (
+                        !response.ok ||
+                        !data.ok
+                    ) {
+                        throw new Error(
+                            data.error ||
+                                "No se pudo cargar la votación MVP."
+                        );
+                    }
+
+                    setMvpRanking(
+                        data.ranking ??
+                            []
+                    );
+                    setMvpTotal(
+                        data.total ??
+                            0
+                    );
+                    setMvpError("");
+                } catch (cause) {
+                    if (
+                        !silencioso
+                    ) {
+                        setMvpError(
+                            cause instanceof
+                                Error
+                                ? cause.message
+                                : "No se pudo cargar la votación MVP."
+                        );
+                    }
+                } finally {
+                    if (
+                        !silencioso
+                    ) {
+                        setMvpLoading(
+                            false
+                        );
+                    }
+                }
+            },
+            []
+        );
+
+    useEffect(() => {
+        const saved =
+            window.localStorage.getItem(
+                `genesisfc-mvp:${MATCH_SLUG}`
+            );
+
+        if (saved) {
+            setMyMvp(saved);
+        }
+
+        if (
+            match?.status !==
+            "finished"
+        ) {
+            setMvpLoading(
+                false
+            );
+            return;
+        }
+
+        cargarMvp();
+
+        const poll =
+            window.setInterval(
+                () => {
+                    cargarMvp(
+                        true
+                    );
+                },
+                15000
+            );
+
+        return () =>
+            window.clearInterval(
+                poll
+            );
+    }, [
+        cargarMvp,
+        match?.status,
+    ]);
+
+    async function votarMvp(
+        playerId: string
+    ) {
+        if (
+            mvpVoting ||
+            match?.status !==
+                "finished" ||
+            myMvp
+        ) {
+            return;
+        }
+
+        setMvpVoting(true);
+        setMvpError("");
+
+        try {
+            const voterHash =
+                await obtenerVoterHash(
+                    MATCH_SLUG
+                );
+
+            const response =
+                await fetch(
+                    "/api/mvp",
+                    {
+                        method:
+                            "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify(
+                            {
+                                match_slug:
+                                    MATCH_SLUG,
+                                player_id:
+                                    playerId,
+                                voter_hash:
+                                    voterHash,
+                            }
+                        ),
+                    }
+                );
+
+            const data =
+                (await response.json()) as MvpApiResponse;
+
+            if (
+                !response.ok ||
+                !data.ok
+            ) {
+                throw new Error(
+                    data.error ||
+                        "No se pudo registrar tu voto MVP."
+                );
+            }
+
+            const selected =
+                data.player_id ??
+                playerId;
+
+            setMyMvp(selected);
+            window.localStorage.setItem(
+                `genesisfc-mvp:${MATCH_SLUG}`,
+                selected
+            );
+
+            setMvpRanking(
+                data.ranking ??
+                    []
+            );
+            setMvpTotal(
+                data.total ??
+                    0
+            );
+        } catch (cause) {
+            setMvpError(
+                cause instanceof
+                    Error
+                    ? cause.message
+                    : "No se pudo registrar tu voto MVP."
+            );
+        } finally {
+            setMvpVoting(false);
+        }
+    }
 
     /* =====================================================
        REACCIONES DE LA AFICIÓN
@@ -3667,6 +4010,329 @@ export default function GenesisVsOlanchoPage() {
                                 </>
                             )}
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                MVP DE LA AFICIÓN
+            ================================================= */}
+
+            <section className="px-4 pt-8 sm:px-8 sm:pt-10 lg:px-12">
+                <div className="mx-auto max-w-[1200px]">
+                    <div className="overflow-hidden rounded-[30px] border border-black/[0.06] bg-white shadow-[0_24px_80px_rgba(6,20,45,0.06)]">
+                        <div className="bg-[#06142d] px-5 py-8 text-white sm:px-8 sm:py-10">
+                            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-px w-8 bg-cyan-300" />
+
+                                        <p className="text-[7px] font-black uppercase tracking-[0.27em] text-cyan-300">
+                                            La afición decide
+                                        </p>
+                                    </div>
+
+                                    <h2 className="mt-4 text-4xl font-black uppercase tracking-[-0.05em] sm:text-5xl">
+                                        MVP del partido
+                                        <span className="text-cyan-300">
+                                            .
+                                        </span>
+                                    </h2>
+
+                                    <p className="mt-4 max-w-[620px] text-xs leading-6 text-white/45">
+                                        {match.status ===
+                                        "finished"
+                                            ? "Elige al jugador más destacado del partido. Cada dispositivo puede registrar un solo voto."
+                                            : "La votación abrirá automáticamente cuando finalice el partido."}
+                                    </p>
+                                </div>
+
+                                <div className="w-fit rounded-full border border-white/10 bg-white/[0.05] px-5 py-3">
+                                    <p className="text-[7px] font-black uppercase tracking-[0.18em] text-white/45">
+                                        {match.status ===
+                                        "finished"
+                                            ? `${mvpTotal} ${
+                                                  mvpTotal ===
+                                                  1
+                                                      ? "voto"
+                                                      : "votos"
+                                              }`
+                                            : "Disponible al FT"}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {match.status !==
+                        "finished" ? (
+                            <div className="flex min-h-[220px] items-center justify-center px-6 py-12 text-center">
+                                <div className="max-w-[430px]">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#168cab]/20 bg-[#168cab]/5 text-2xl">
+                                        ⭐
+                                    </div>
+
+                                    <h3 className="mt-5 text-xl font-black uppercase">
+                                        Votación bloqueada
+                                    </h3>
+
+                                    <p className="mt-3 text-xs leading-6 text-black/40">
+                                        Cuando Live Ops marque el encuentro como finalizado, podrás votar por el MVP de la afición.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : mvpLoading ? (
+                            <div className="flex min-h-[220px] items-center justify-center text-center">
+                                <div>
+                                    <span className="mx-auto block h-2 w-2 animate-pulse rounded-full bg-[#168cab]" />
+
+                                    <p className="mt-4 text-[7px] font-black uppercase tracking-[0.18em] text-black/30">
+                                        Cargando votación MVP...
+                                    </p>
+                                </div>
+                            </div>
+                        ) : mvpCandidates.length ===
+                          0 ? (
+                            <div className="flex min-h-[220px] items-center justify-center px-6 py-12 text-center">
+                                <div className="max-w-[430px]">
+                                    <h3 className="text-xl font-black uppercase">
+                                        Jugadores no disponibles
+                                    </h3>
+
+                                    <p className="mt-3 text-xs leading-6 text-black/40">
+                                        La votación se habilitará cuando los jugadores del partido estén disponibles en Live Ops.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-5 sm:p-8">
+                                {mvpLeader &&
+                                    mvpTotal >
+                                        0 && (
+                                        <div className="mb-7 rounded-[24px] border border-amber-400/20 bg-amber-300/[0.08] p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+                                            <div>
+                                                <p className="text-[7px] font-black uppercase tracking-[0.2em] text-amber-700">
+                                                    Liderando la votación
+                                                </p>
+
+                                                <h3 className="mt-2 text-2xl font-black uppercase tracking-[-0.04em]">
+                                                    ⭐ {mvpLeader.player.player_name}
+                                                </h3>
+
+                                                <p className="mt-2 text-[8px] font-black uppercase tracking-[0.14em] text-black/35">
+                                                    {mvpLeader.player.team}
+                                                </p>
+                                            </div>
+
+                                            <div className="mt-4 w-fit rounded-full bg-[#06142d] px-5 py-3 text-white sm:mt-0">
+                                                <p className="text-[8px] font-black uppercase tracking-[0.14em]">
+                                                    {mvpLeader.votes} {
+                                                        mvpLeader.votes ===
+                                                        1
+                                                            ? "voto"
+                                                            : "votos"
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                <div className="grid gap-6 lg:grid-cols-2">
+                                    {[
+                                        {
+                                            team:
+                                                match.home_team,
+                                            players:
+                                                mvpCandidates.filter(
+                                                    (player) =>
+                                                        player.team ===
+                                                        match.home_team
+                                                ),
+                                            logo:
+                                                match.home_logo ||
+                                                "/genesis.jpg",
+                                        },
+                                        {
+                                            team:
+                                                match.away_team,
+                                            players:
+                                                mvpCandidates.filter(
+                                                    (player) =>
+                                                        player.team ===
+                                                        match.away_team
+                                                ),
+                                            logo:
+                                                match.away_logo ||
+                                                "/olancho.png",
+                                        },
+                                    ].map(
+                                        (group) => (
+                                            <div
+                                                key={
+                                                    group.team
+                                                }
+                                                className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-[#f8f8f6]"
+                                            >
+                                                <div className="flex items-center gap-3 border-b border-black/[0.06] px-5 py-4">
+                                                    <div className="relative h-10 w-10 shrink-0">
+                                                        <Image
+                                                            src={
+                                                                group.logo
+                                                            }
+                                                            alt={
+                                                                group.team
+                                                            }
+                                                            fill
+                                                            quality={
+                                                                100
+                                                            }
+                                                            sizes="40px"
+                                                            className="object-contain"
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <p className="text-[6px] font-black uppercase tracking-[0.18em] text-[#168cab]">
+                                                            Candidatos
+                                                        </p>
+
+                                                        <h3 className="mt-1 text-sm font-black uppercase">
+                                                            {
+                                                                group.team
+                                                            }
+                                                        </h3>
+                                                    </div>
+                                                </div>
+
+                                                <div className="divide-y divide-black/[0.05]">
+                                                    {group.players.map(
+                                                        (player) => {
+                                                            const selected =
+                                                                myMvp ===
+                                                                player.id;
+                                                            const rankingItem =
+                                                                mvpRanking.find(
+                                                                    (item) =>
+                                                                        item.player_id ===
+                                                                        player.id
+                                                                );
+                                                            const votes =
+                                                                rankingItem?.votes ??
+                                                                0;
+                                                            const percentage =
+                                                                mvpTotal >
+                                                                0
+                                                                    ? Math.round(
+                                                                          (votes /
+                                                                              mvpTotal) *
+                                                                              100
+                                                                      )
+                                                                    : 0;
+
+                                                            return (
+                                                                <button
+                                                                    key={
+                                                                        player.id
+                                                                    }
+                                                                    type="button"
+                                                                    disabled={
+                                                                        mvpVoting ||
+                                                                        Boolean(
+                                                                            myMvp
+                                                                        )
+                                                                    }
+                                                                    onClick={() =>
+                                                                        votarMvp(
+                                                                            player.id
+                                                                        )
+                                                                    }
+                                                                    className={`w-full px-4 py-4 text-left transition ${
+                                                                        selected
+                                                                            ? "bg-[#eaf7fb]"
+                                                                            : myMvp
+                                                                              ? "cursor-default"
+                                                                              : "hover:bg-white"
+                                                                    } disabled:opacity-100`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[8px] font-black ${
+                                                                            selected
+                                                                                ? "bg-[#168cab] text-white"
+                                                                                : "bg-[#06142d] text-white"
+                                                                        }`}>
+                                                                            {player.shirt_number ??
+                                                                                "—"}
+                                                                        </div>
+
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <p className="truncate text-[10px] font-black uppercase">
+                                                                                    {
+                                                                                        player.player_name
+                                                                                    }
+                                                                                </p>
+
+                                                                                {selected && (
+                                                                                    <span className="rounded-full bg-[#168cab] px-2 py-1 text-[5px] font-black uppercase tracking-[0.1em] text-white">
+                                                                                        Tu voto
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <p className="mt-1 text-[6px] font-black uppercase tracking-[0.13em] text-black/30">
+                                                                                {player.position ||
+                                                                                    (player.is_starter
+                                                                                        ? "Titular"
+                                                                                        : "Suplente")}
+                                                                            </p>
+                                                                        </div>
+
+                                                                        {myMvp && (
+                                                                            <div className="shrink-0 text-right">
+                                                                                <p className="text-sm font-black tabular-nums">
+                                                                                    {
+                                                                                        percentage
+                                                                                    }
+                                                                                    %
+                                                                                </p>
+
+                                                                                <p className="mt-1 text-[5px] font-black uppercase text-black/25">
+                                                                                    {votes} {
+                                                                                        votes ===
+                                                                                        1
+                                                                                            ? "voto"
+                                                                                            : "votos"
+                                                                                    }
+                                                                                </p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        }
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+
+                                {mvpError && (
+                                    <div className="mt-5 rounded-[16px] border border-red-500/15 bg-red-500/[0.05] px-4 py-4 text-center">
+                                        <p className="text-[8px] font-bold leading-5 text-red-600">
+                                            {
+                                                mvpError
+                                            }
+                                        </p>
+                                    </div>
+                                )}
+
+                                <p className="mt-6 text-center text-[7px] font-black uppercase tracking-[0.14em] text-black/25">
+                                    {myMvp
+                                        ? "Tu voto MVP quedó registrado."
+                                        : "Selecciona un jugador · Un voto por dispositivo"}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
