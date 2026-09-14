@@ -419,10 +419,11 @@ export default function Home() {
 
           <div className="hidden items-center gap-3 lg:flex">
             <Link
-              href="/partidos/genesis-vs-olancho"
-              className={`rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] px-6 py-4 text-[8px] font-black uppercase tracking-[0.16em] text-cyan-300 transition hover:bg-cyan-300 hover:text-[#020817] ${focusDark}`}
+              href="/buscar"
+              aria-label="Buscar en Génesis FC"
+              className={`flex h-[46px] w-[46px] items-center justify-center rounded-full border border-white/15 text-lg text-white/65 transition hover:border-cyan-300/40 hover:bg-cyan-300/[0.08] hover:text-cyan-300 ${focusDark}`}
             >
-              Live Ops
+              <span aria-hidden="true">⌕</span>
             </Link>
 
             <Link
@@ -494,13 +495,14 @@ export default function Home() {
               )}
 
               <Link
-                href="/partidos/genesis-vs-olancho"
+                href="/buscar"
                 onClick={() =>
                   setMenuOpen(false)
                 }
-                className={`mt-5 rounded-full border border-amber-300/30 bg-amber-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-amber-300 ${focusDark}`}
+                className={`mt-5 flex items-center justify-center gap-3 rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-cyan-300 ${focusDark}`}
               >
-                Live Ops
+                <span aria-hidden="true" className="text-sm">⌕</span>
+                Buscar en Génesis
               </Link>
 
               <Link
@@ -508,7 +510,7 @@ export default function Home() {
                 onClick={() =>
                   setMenuOpen(false)
                 }
-                className={`mt-2 rounded-full border border-cyan-300/30 bg-cyan-300/[0.08] py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-cyan-300 ${focusDark}`}
+                className={`mt-2 rounded-full border border-white/12 py-4 text-center text-[9px] font-black uppercase tracking-[0.15em] text-white/70 ${focusDark}`}
               >
                 Ver plantilla
               </Link>
@@ -1540,6 +1542,13 @@ export default function Home() {
                 </Link>
 
                 <Link
+                  href="/buscar"
+                  className={`text-xs text-white/55 ${focusDark}`}
+                >
+                  Buscar
+                </Link>
+
+                <Link
                   href="/equipo"
                   className={`text-xs text-white/55 ${focusDark}`}
                 >
@@ -1547,7 +1556,7 @@ export default function Home() {
                 </Link>
 
                 <Link
-                  href="/partidos/genesis-vs-olancho"
+                  href="/partidos/motagua-vs-genesis"
                   className={`text-xs text-white/55 ${focusDark}`}
                 >
                   Siguiente partido
