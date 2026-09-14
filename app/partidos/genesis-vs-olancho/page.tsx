@@ -225,6 +225,32 @@ type PredictionApiResponse = {
     };
 };
 
+type ReactionChoice =
+    | "fire"
+    | "heart"
+    | "goal"
+    | "clap";
+
+type ReactionSummary = {
+    fire: number;
+    heart: number;
+    goal: number;
+    clap: number;
+    total: number;
+};
+
+type ReactionApiResponse = {
+    ok: boolean;
+    error?: string;
+    rate_limited?: boolean;
+    reaction?: ReactionChoice;
+    fire?: number;
+    heart?: number;
+    goal?: number;
+    clap?: number;
+    total?: number;
+};
+
 /* =========================================================
    FORMA RECIENTE GÉNESIS
 ========================================================= */
@@ -1624,6 +1650,46 @@ export default function GenesisVsOlanchoPage() {
     ] =
         useState(false);
 
+    const [
+        reactionSummary,
+        setReactionSummary,
+    ] =
+        useState<ReactionSummary>({
+            fire: 0,
+            heart: 0,
+            goal: 0,
+            clap: 0,
+            total: 0,
+        });
+
+    const [
+        reactionLoading,
+        setReactionLoading,
+    ] =
+        useState(true);
+
+    const [
+        reactionSending,
+        setReactionSending,
+    ] =
+        useState<ReactionChoice | null>(
+            null
+        );
+
+    const [
+        reactionError,
+        setReactionError,
+    ] =
+        useState("");
+
+    const [
+        lastReaction,
+        setLastReaction,
+    ] =
+        useState<ReactionChoice | null>(
+            null
+        );
+
     /* =====================================================
        CARGAR LIVE OPS
     ===================================================== */
@@ -2296,6 +2362,240 @@ export default function GenesisVsOlanchoPage() {
     const enPartido =
         match?.status !==
         "pre_match";
+
+    /* =====================================================
+       REACCIONES DE LA AFICIÓN
+    ===================================================== */
+
+    const cargarReacciones =
+        useCallback(
+            async (
+                silencioso =
+                    false
+            ) => {
+                try {
+                    if (
+                        !silencioso
+                    ) {
+                        setReactionLoading(
+                            true
+                        );
+                    }
+
+                    const response =
+                        await fetch(
+                            `/api/reactions?match_slug=${encodeURIComponent(
+                                MATCH_SLUG
+                            )}`,
+                            {
+                                cache:
+                                    "no-store",
+                            }
+                        );
+
+                    const data =
+                        (await response.json()) as ReactionApiResponse;
+
+                    if (
+                        !response.ok ||
+                        !data.ok
+                    ) {
+                        throw new Error(
+                            data.error ||
+                                "No se pudieron cargar las reacciones."
+                        );
+                    }
+
+                    setReactionSummary({
+                        fire:
+                            data.fire ??
+                            0,
+                        heart:
+                            data.heart ??
+                            0,
+                        goal:
+                            data.goal ??
+                            0,
+                        clap:
+                            data.clap ??
+                            0,
+                        total:
+                            data.total ??
+                            0,
+                    });
+
+                    setReactionError(
+                        ""
+                    );
+                } catch (
+                    cause
+                ) {
+                    if (
+                        !silencioso
+                    ) {
+                        setReactionError(
+                            cause instanceof
+                                Error
+                                ? cause.message
+                                : "No se pudieron cargar las reacciones."
+                        );
+                    }
+                } finally {
+                    if (
+                        !silencioso
+                    ) {
+                        setReactionLoading(
+                            false
+                        );
+                    }
+                }
+            },
+            []
+        );
+
+    useEffect(() => {
+        cargarReacciones();
+
+        const poll =
+            window.setInterval(
+                () => {
+                    cargarReacciones(
+                        true
+                    );
+                },
+                5000
+            );
+
+        return () =>
+            window.clearInterval(
+                poll
+            );
+    }, [
+        cargarReacciones,
+    ]);
+
+    async function enviarReaccion(
+        reaction: ReactionChoice
+    ) {
+        if (reactionSending) {
+            return;
+        }
+
+        setReactionSending(
+            reaction
+        );
+        setReactionError("");
+        setLastReaction(
+            reaction
+        );
+
+        try {
+            const voterHash =
+                await obtenerVoterHash(
+                    MATCH_SLUG
+                );
+
+            const response =
+                await fetch(
+                    "/api/reactions",
+                    {
+                        method:
+                            "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify(
+                            {
+                                match_slug:
+                                    MATCH_SLUG,
+                                reaction,
+                                voter_hash:
+                                    voterHash,
+                            }
+                        ),
+                    }
+                );
+
+            const data =
+                (await response.json()) as ReactionApiResponse;
+
+            if (
+                !response.ok ||
+                !data.ok
+            ) {
+                if (
+                    data.fire !==
+                        undefined ||
+                    data.total !==
+                        undefined
+                ) {
+                    setReactionSummary({
+                        fire:
+                            data.fire ??
+                            0,
+                        heart:
+                            data.heart ??
+                            0,
+                        goal:
+                            data.goal ??
+                            0,
+                        clap:
+                            data.clap ??
+                            0,
+                        total:
+                            data.total ??
+                            0,
+                    });
+                }
+
+                throw new Error(
+                    data.error ||
+                        "No se pudo registrar la reacción."
+                );
+            }
+
+            setReactionSummary({
+                fire:
+                    data.fire ??
+                    0,
+                heart:
+                    data.heart ??
+                    0,
+                goal:
+                    data.goal ??
+                    0,
+                clap:
+                    data.clap ??
+                    0,
+                total:
+                    data.total ??
+                    0,
+            });
+
+            window.setTimeout(
+                () => {
+                    setLastReaction(
+                        null
+                    );
+                },
+                700
+            );
+        } catch (
+            cause
+        ) {
+            setReactionError(
+                cause instanceof
+                    Error
+                    ? cause.message
+                    : "No se pudo registrar la reacción."
+            );
+        } finally {
+            setReactionSending(
+                null
+            );
+        }
+    }
 
     /* =====================================================
        COMPARTIR PARTIDO
@@ -3189,6 +3489,183 @@ export default function GenesisVsOlanchoPage() {
                                     genesisfc.app · Match Center oficial
                                 </p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* =================================================
+                REACCIONES DE LA AFICIÓN
+            ================================================= */}
+
+            <section className="px-4 pt-8 sm:px-8 sm:pt-10 lg:px-12">
+                <div className="mx-auto max-w-[1200px]">
+                    <div className="overflow-hidden rounded-[28px] border border-black/[0.06] bg-white shadow-[0_20px_65px_rgba(6,20,45,0.05)]">
+                        <div className="flex flex-col gap-5 border-b border-black/[0.06] bg-[#06142d] px-5 py-7 text-white sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:py-8">
+                            <div>
+                                <div className="flex items-center gap-3">
+                                    <span className="h-px w-8 bg-cyan-300" />
+
+                                    <p className="text-[7px] font-black uppercase tracking-[0.25em] text-cyan-300">
+                                        Fan Zone
+                                    </p>
+                                </div>
+
+                                <h2 className="mt-4 text-3xl font-black uppercase tracking-[-0.05em] sm:text-4xl">
+                                    Reacciona
+                                    <span className="text-cyan-300">
+                                        .
+                                    </span>
+                                </h2>
+
+                                <p className="mt-4 max-w-[520px] text-xs leading-6 text-white/45">
+                                    Apoya a Génesis durante la previa y el partido. Puedes reaccionar varias veces; protegemos el sistema contra spam excesivo.
+                                </p>
+                            </div>
+
+                            <div className="w-fit rounded-full border border-white/10 bg-white/[0.05] px-5 py-3">
+                                <p className="text-[7px] font-black uppercase tracking-[0.18em] text-white/45">
+                                    {reactionSummary.total}{" "}
+                                    {reactionSummary.total ===
+                                    1
+                                        ? "reacción"
+                                        : "reacciones"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-5 sm:p-8">
+                            {reactionLoading ? (
+                                <div className="flex min-h-[150px] items-center justify-center text-center">
+                                    <div>
+                                        <span className="mx-auto block h-2 w-2 animate-pulse rounded-full bg-[#168cab]" />
+
+                                        <p className="mt-4 text-[7px] font-black uppercase tracking-[0.18em] text-black/30">
+                                            Cargando reacciones...
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                        {[
+                                            {
+                                                value:
+                                                    "fire" as ReactionChoice,
+                                                emoji:
+                                                    "🔥",
+                                                label:
+                                                    "Fuego",
+                                                count:
+                                                    reactionSummary.fire,
+                                            },
+                                            {
+                                                value:
+                                                    "heart" as ReactionChoice,
+                                                emoji:
+                                                    "💚",
+                                                label:
+                                                    "Génesis",
+                                                count:
+                                                    reactionSummary.heart,
+                                            },
+                                            {
+                                                value:
+                                                    "goal" as ReactionChoice,
+                                                emoji:
+                                                    "⚽",
+                                                label:
+                                                    "Gol",
+                                                count:
+                                                    reactionSummary.goal,
+                                            },
+                                            {
+                                                value:
+                                                    "clap" as ReactionChoice,
+                                                emoji:
+                                                    "🙌",
+                                                label:
+                                                    "Vamos",
+                                                count:
+                                                    reactionSummary.clap,
+                                            },
+                                        ].map(
+                                            (
+                                                item
+                                            ) => {
+                                                const active =
+                                                    lastReaction ===
+                                                    item.value;
+
+                                                const sending =
+                                                    reactionSending ===
+                                                    item.value;
+
+                                                return (
+                                                    <button
+                                                        key={
+                                                            item.value
+                                                        }
+                                                        type="button"
+                                                        disabled={
+                                                            reactionSending !==
+                                                            null
+                                                        }
+                                                        onClick={() =>
+                                                            enviarReaccion(
+                                                                item.value
+                                                            )
+                                                        }
+                                                        className={`group relative min-h-[132px] overflow-hidden rounded-[22px] border px-4 py-5 text-center transition active:scale-[0.97] ${
+                                                            active
+                                                                ? "border-[#168cab] bg-[#e9f7fb] shadow-[0_14px_38px_rgba(22,140,171,0.12)]"
+                                                                : "border-black/[0.07] bg-[#f7f7f5] hover:border-[#168cab]/30 hover:bg-[#eef8fa]"
+                                                        } disabled:cursor-wait disabled:opacity-75`}
+                                                    >
+                                                        <span
+                                                            className={`block text-4xl transition duration-200 ${
+                                                                active
+                                                                    ? "scale-125"
+                                                                    : "group-hover:scale-110"
+                                                            }`}
+                                                        >
+                                                            {
+                                                                item.emoji
+                                                            }
+                                                        </span>
+
+                                                        <p className="mt-3 text-[7px] font-black uppercase tracking-[0.16em] text-[#168cab]">
+                                                            {
+                                                                item.label
+                                                            }
+                                                        </p>
+
+                                                        <p className="mt-2 text-xl font-black tabular-nums">
+                                                            {sending
+                                                                ? "·"
+                                                                : item.count}
+                                                        </p>
+                                                    </button>
+                                                );
+                                            }
+                                        )}
+                                    </div>
+
+                                    {reactionError && (
+                                        <div className="mt-5 rounded-[16px] border border-amber-500/20 bg-amber-500/[0.06] px-4 py-4 text-center">
+                                            <p className="text-[8px] font-bold leading-5 text-amber-700">
+                                                {
+                                                    reactionError
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <p className="mt-5 text-center text-[6px] font-black uppercase tracking-[0.14em] text-black/25">
+                                        Máximo 5 reacciones cada 10 segundos por dispositivo
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
