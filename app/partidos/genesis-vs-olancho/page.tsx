@@ -189,6 +189,39 @@ type Resultado = {
     estado: "V" | "E" | "D";
 };
 
+type PredictionChoice =
+    | "home"
+    | "draw"
+    | "away";
+
+type PredictionSummary = {
+    total: number;
+    home: number;
+    draw: number;
+    away: number;
+    percentages: {
+        home: number;
+        draw: number;
+        away: number;
+    };
+};
+
+type PredictionApiResponse = {
+    ok: boolean;
+    error?: string;
+    already_voted?: boolean;
+    prediction?: PredictionChoice;
+    total?: number;
+    home?: number;
+    draw?: number;
+    away?: number;
+    percentages?: {
+        home: number;
+        draw: number;
+        away: number;
+    };
+};
+
 /* =========================================================
    FORMA RECIENTE GÉNESIS
 ========================================================= */
@@ -312,6 +345,70 @@ function dos(
         2,
         "0"
     );
+}
+
+async function obtenerVoterHash(
+    matchSlug: string
+) {
+    const storageKey =
+        "genesisfc-anonymous-voter-id";
+
+    let voterId =
+        window.localStorage.getItem(
+            storageKey
+        );
+
+    if (!voterId) {
+        voterId =
+            typeof crypto.randomUUID ===
+            "function"
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random()
+                      .toString(36)
+                      .slice(2)}`;
+
+        window.localStorage.setItem(
+            storageKey,
+            voterId
+        );
+    }
+
+    const source =
+        `${matchSlug}:${voterId}`;
+
+    if (
+        crypto.subtle &&
+        typeof TextEncoder !==
+            "undefined"
+    ) {
+        const bytes =
+            new TextEncoder().encode(
+                source
+            );
+
+        const digest =
+            await crypto.subtle.digest(
+                "SHA-256",
+                bytes
+            );
+
+        return Array.from(
+            new Uint8Array(
+                digest
+            )
+        )
+            .map((byte) =>
+                byte
+                    .toString(16)
+                    .padStart(
+                        2,
+                        "0"
+                    )
+            )
+            .join("");
+    }
+
+    return source;
 }
 
 function formatClock(
@@ -1476,6 +1573,48 @@ export default function GenesisVsOlanchoPage() {
             segundos: 0,
         });
 
+    const [
+        predictionSummary,
+        setPredictionSummary,
+    ] =
+        useState<PredictionSummary>({
+            total: 0,
+            home: 0,
+            draw: 0,
+            away: 0,
+            percentages: {
+                home: 0,
+                draw: 0,
+                away: 0,
+            },
+        });
+
+    const [
+        predictionLoading,
+        setPredictionLoading,
+    ] =
+        useState(true);
+
+    const [
+        predictionVoting,
+        setPredictionVoting,
+    ] =
+        useState(false);
+
+    const [
+        myPrediction,
+        setMyPrediction,
+    ] =
+        useState<PredictionChoice | null>(
+            null
+        );
+
+    const [
+        predictionError,
+        setPredictionError,
+    ] =
+        useState("");
+
     /* =====================================================
        CARGAR LIVE OPS
     ===================================================== */
@@ -1586,6 +1725,233 @@ export default function GenesisVsOlanchoPage() {
     }, [
         cargar,
     ]);
+
+    /* =====================================================
+       PRONÓSTICO DE LA AFICIÓN
+    ===================================================== */
+
+    const cargarPronostico =
+        useCallback(
+            async (
+                silencioso =
+                    false
+            ) => {
+                try {
+                    if (
+                        !silencioso
+                    ) {
+                        setPredictionLoading(
+                            true
+                        );
+                    }
+
+                    const response =
+                        await fetch(
+                            `/api/predictions?match_slug=${encodeURIComponent(
+                                MATCH_SLUG
+                            )}`,
+                            {
+                                cache:
+                                    "no-store",
+                            }
+                        );
+
+                    const data =
+                        (await response.json()) as PredictionApiResponse;
+
+                    if (
+                        !response.ok ||
+                        !data.ok ||
+                        !data.percentages
+                    ) {
+                        throw new Error(
+                            data.error ||
+                                "No se pudo cargar el pronóstico."
+                        );
+                    }
+
+                    setPredictionSummary({
+                        total:
+                            data.total ??
+                            0,
+                        home:
+                            data.home ??
+                            0,
+                        draw:
+                            data.draw ??
+                            0,
+                        away:
+                            data.away ??
+                            0,
+                        percentages:
+                            data.percentages,
+                    });
+
+                    setPredictionError("");
+                } catch (
+                    cause
+                ) {
+                    if (
+                        !silencioso
+                    ) {
+                        setPredictionError(
+                            cause instanceof
+                                Error
+                                ? cause.message
+                                : "No se pudo cargar el pronóstico."
+                        );
+                    }
+                } finally {
+                    if (
+                        !silencioso
+                    ) {
+                        setPredictionLoading(
+                            false
+                        );
+                    }
+                }
+            },
+            []
+        );
+
+    useEffect(() => {
+        cargarPronostico();
+
+        const saved =
+            window.localStorage.getItem(
+                `genesisfc-prediction:${MATCH_SLUG}`
+            );
+
+        if (
+            saved === "home" ||
+            saved === "draw" ||
+            saved === "away"
+        ) {
+            setMyPrediction(
+                saved
+            );
+        }
+
+        const poll =
+            window.setInterval(
+                () => {
+                    cargarPronostico(
+                        true
+                    );
+                },
+                15000
+            );
+
+        return () =>
+            window.clearInterval(
+                poll
+            );
+    }, [
+        cargarPronostico,
+    ]);
+
+    async function votarPronostico(
+        prediction: PredictionChoice
+    ) {
+        if (
+            predictionVoting ||
+            match?.status !==
+                "pre_match"
+        ) {
+            return;
+        }
+
+        setPredictionVoting(
+            true
+        );
+        setPredictionError("");
+
+        try {
+            const voterHash =
+                await obtenerVoterHash(
+                    MATCH_SLUG
+                );
+
+            const response =
+                await fetch(
+                    "/api/predictions",
+                    {
+                        method:
+                            "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        body: JSON.stringify(
+                            {
+                                match_slug:
+                                    MATCH_SLUG,
+                                prediction,
+                                voter_hash:
+                                    voterHash,
+                            }
+                        ),
+                    }
+                );
+
+            const data =
+                (await response.json()) as PredictionApiResponse;
+
+            if (
+                !response.ok ||
+                !data.ok ||
+                !data.percentages
+            ) {
+                throw new Error(
+                    data.error ||
+                        "No se pudo registrar tu pronóstico."
+                );
+            }
+
+            const selected =
+                data.prediction ??
+                prediction;
+
+            setMyPrediction(
+                selected
+            );
+
+            window.localStorage.setItem(
+                `genesisfc-prediction:${MATCH_SLUG}`,
+                selected
+            );
+
+            setPredictionSummary({
+                total:
+                    data.total ??
+                    0,
+                home:
+                    data.home ??
+                    0,
+                draw:
+                    data.draw ??
+                    0,
+                away:
+                    data.away ??
+                    0,
+                percentages:
+                    data.percentages,
+            });
+        } catch (
+            cause
+        ) {
+            setPredictionError(
+                cause instanceof
+                    Error
+                    ? cause.message
+                    : "No se pudo registrar tu pronóstico."
+            );
+        } finally {
+            setPredictionVoting(
+                false
+            );
+        }
+    }
 
     /* =====================================================
        CRONÓMETRO VISUAL
@@ -2327,6 +2693,247 @@ export default function GenesisVsOlanchoPage() {
                             </div>
                         )
                     )}
+                </div>
+            </section>
+
+            {/* =================================================
+                PRONÓSTICO
+            ================================================= */}
+
+            <section className="px-4 pt-16 sm:px-8 sm:pt-24 lg:px-12">
+                <div className="mx-auto max-w-[1200px]">
+                    <div className="overflow-hidden rounded-[30px] border border-black/[0.06] bg-white shadow-[0_24px_80px_rgba(6,20,45,0.07)]">
+                        <div className="bg-[#06142d] px-5 py-8 text-white sm:px-8 sm:py-10">
+                            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="h-px w-8 bg-cyan-300" />
+
+                                        <p className="text-[7px] font-black uppercase tracking-[0.27em] text-cyan-300">
+                                            La afición opina
+                                        </p>
+                                    </div>
+
+                                    <h2 className="mt-4 text-4xl font-black uppercase tracking-[-0.05em] sm:text-5xl">
+                                        Pronóstico
+                                        <span className="text-cyan-300">
+                                            .
+                                        </span>
+                                    </h2>
+
+                                    <p className="mt-4 max-w-[600px] text-xs leading-6 text-white/45">
+                                        {match.status ===
+                                        "pre_match"
+                                            ? "¿Cómo crees que terminará Génesis FC vs Olancho FC? Elige una opción antes del inicio."
+                                            : "La votación cerró cuando comenzó el partido. Estos fueron los pronósticos de la afición."}
+                                    </p>
+                                </div>
+
+                                <div className="w-fit rounded-full border border-white/10 bg-white/[0.05] px-5 py-3">
+                                    <p className="text-[7px] font-black uppercase tracking-[0.18em] text-white/45">
+                                        {predictionSummary.total}{" "}
+                                        {predictionSummary.total ===
+                                        1
+                                            ? "voto"
+                                            : "votos"}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-5 sm:p-8">
+                            {predictionLoading ? (
+                                <div className="flex min-h-[180px] items-center justify-center text-center">
+                                    <div>
+                                        <span className="mx-auto block h-2 w-2 animate-pulse rounded-full bg-[#168cab]" />
+
+                                        <p className="mt-4 text-[7px] font-black uppercase tracking-[0.18em] text-black/30">
+                                            Cargando pronóstico...
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="grid gap-3 sm:grid-cols-3">
+                                        {[
+                                            {
+                                                value:
+                                                    "home" as PredictionChoice,
+                                                label:
+                                                    "Gana Génesis",
+                                                team:
+                                                    match.home_team,
+                                                logo:
+                                                    match.home_logo ||
+                                                    "/genesis.jpg",
+                                                percentage:
+                                                    predictionSummary
+                                                        .percentages
+                                                        .home,
+                                            },
+                                            {
+                                                value:
+                                                    "draw" as PredictionChoice,
+                                                label:
+                                                    "Empate",
+                                                team:
+                                                    "Empate",
+                                                logo:
+                                                    null,
+                                                percentage:
+                                                    predictionSummary
+                                                        .percentages
+                                                        .draw,
+                                            },
+                                            {
+                                                value:
+                                                    "away" as PredictionChoice,
+                                                label:
+                                                    "Gana Olancho",
+                                                team:
+                                                    match.away_team,
+                                                logo:
+                                                    match.away_logo ||
+                                                    "/olancho.png",
+                                                percentage:
+                                                    predictionSummary
+                                                        .percentages
+                                                        .away,
+                                            },
+                                        ].map(
+                                            (
+                                                option
+                                            ) => {
+                                                const selected =
+                                                    myPrediction ===
+                                                    option.value;
+
+                                                const showResults =
+                                                    Boolean(
+                                                        myPrediction
+                                                    ) ||
+                                                    match.status !==
+                                                        "pre_match";
+
+                                                return (
+                                                    <button
+                                                        key={
+                                                            option.value
+                                                        }
+                                                        type="button"
+                                                        disabled={
+                                                            predictionVoting ||
+                                                            match.status !==
+                                                                "pre_match"
+                                                        }
+                                                        onClick={() =>
+                                                            votarPronostico(
+                                                                option.value
+                                                            )
+                                                        }
+                                                        className={`relative overflow-hidden rounded-[22px] border px-5 py-6 text-center transition ${
+                                                            selected
+                                                                ? "border-[#168cab] bg-[#eaf7fb] shadow-[0_14px_40px_rgba(22,140,171,0.12)]"
+                                                                : "border-black/[0.07] bg-[#f7f7f5] hover:border-[#168cab]/30 hover:bg-[#f0f8fa]"
+                                                        } ${
+                                                            match.status !==
+                                                                "pre_match"
+                                                                ? "cursor-default"
+                                                                : "cursor-pointer"
+                                                        } disabled:opacity-80`}
+                                                    >
+                                                        {selected && (
+                                                            <div className="absolute right-3 top-3 rounded-full bg-[#168cab] px-3 py-1.5">
+                                                                <p className="text-[5px] font-black uppercase tracking-[0.14em] text-white">
+                                                                    Tu voto
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {option.logo ? (
+                                                            <div className="relative mx-auto h-14 w-14">
+                                                                <Image
+                                                                    src={
+                                                                        option.logo
+                                                                    }
+                                                                    alt={
+                                                                        option.team
+                                                                    }
+                                                                    fill
+                                                                    quality={
+                                                                        100
+                                                                    }
+                                                                    sizes="56px"
+                                                                    className="object-contain"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#06142d] text-sm font-black text-white">
+                                                                X
+                                                            </div>
+                                                        )}
+
+                                                        <p className="mt-4 text-[7px] font-black uppercase tracking-[0.16em] text-[#168cab]">
+                                                            {
+                                                                option.label
+                                                            }
+                                                        </p>
+
+                                                        <p className="mt-2 text-lg font-black uppercase">
+                                                            {
+                                                                option.team
+                                                            }
+                                                        </p>
+
+                                                        {showResults && (
+                                                            <>
+                                                                <p className="mt-5 text-4xl font-black tabular-nums tracking-[-0.06em]">
+                                                                    {
+                                                                        option.percentage
+                                                                    }
+                                                                    %
+                                                                </p>
+
+                                                                <div className="mx-auto mt-4 h-1.5 max-w-[210px] overflow-hidden rounded-full bg-black/[0.06]">
+                                                                    <div
+                                                                        className="h-full rounded-full bg-[#168cab] transition-all duration-500"
+                                                                        style={{
+                                                                            width: `${option.percentage}%`,
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                );
+                                            }
+                                        )}
+                                    </div>
+
+                                    {predictionError && (
+                                        <div className="mt-5 rounded-[16px] border border-red-500/15 bg-red-500/[0.05] px-4 py-4 text-center">
+                                            <p className="text-[8px] font-bold leading-5 text-red-600">
+                                                {
+                                                    predictionError
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="mt-6 text-center">
+                                        <p className="text-[7px] font-black uppercase tracking-[0.14em] text-black/25">
+                                            {match.status ===
+                                            "pre_match"
+                                                ? myPrediction
+                                                    ? "Tu pronóstico quedó registrado."
+                                                    : "Un voto por dispositivo · La votación cierra al iniciar el partido."
+                                                : "Pronóstico cerrado"}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </section>
 
