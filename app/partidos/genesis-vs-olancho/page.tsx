@@ -838,7 +838,7 @@ function Logo({
         <div
             className={`relative shrink-0 ${
                 large
-                    ? "h-24 w-24 sm:h-36 sm:w-36 lg:h-44 lg:w-44"
+                    ? "h-20 w-20 sm:h-36 sm:w-36 lg:h-44 lg:w-44"
                     : "h-10 w-10"
             }`}
         >
@@ -3206,7 +3206,7 @@ export default function GenesisVsOlanchoPage() {
                         </p>
                     </div>
 
-                    <div className="mx-auto mt-12 grid max-w-[1100px] grid-cols-[1fr_110px_1fr] items-center gap-2 sm:grid-cols-[1fr_260px_1fr]">
+                    <div className="mx-auto mt-12 grid max-w-[1100px] grid-cols-[minmax(0,1fr)_116px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[1fr_260px_1fr] sm:gap-2">
                         <div className="flex min-w-0 flex-col items-center">
                             <Logo
                                 src={
@@ -3233,26 +3233,26 @@ export default function GenesisVsOlanchoPage() {
                         <div className="flex flex-col items-center">
                             {enPartido ? (
                                 <>
-                                    <div className="flex items-center gap-3 sm:gap-6">
-                                        <span className="text-5xl font-black tabular-nums tracking-[-0.07em] sm:text-8xl">
+                                    <div className="flex items-center gap-2 sm:gap-6">
+                                        <span className="text-4xl font-black tabular-nums tracking-[-0.07em] sm:text-8xl">
                                             {
                                                 match.home_score
                                             }
                                         </span>
 
-                                        <span className="text-xl font-black text-white/20 sm:text-4xl">
+                                        <span className="text-base font-black text-white/20 sm:text-4xl">
                                             —
                                         </span>
 
-                                        <span className="text-5xl font-black tabular-nums tracking-[-0.07em] text-cyan-300 sm:text-8xl">
+                                        <span className="text-4xl font-black tabular-nums tracking-[-0.07em] text-cyan-300 sm:text-8xl">
                                             {
                                                 match.away_score
                                             }
                                         </span>
                                     </div>
 
-                                    <div className="mt-6 min-w-[170px] rounded-[20px] border border-white/10 bg-white/[0.045] px-6 py-4 text-center">
-                                        <p className="text-4xl font-black tabular-nums tracking-[-0.05em] text-cyan-300 sm:text-5xl">
+                                    <div className="mt-5 w-full max-w-[116px] rounded-[18px] border border-white/10 bg-white/[0.045] px-3 py-4 text-center sm:mt-6 sm:min-w-[170px] sm:max-w-none sm:rounded-[20px] sm:px-6">
+                                        <p className="text-3xl font-black tabular-nums tracking-[-0.05em] text-cyan-300 sm:text-5xl">
                                             {match.status ===
                                             "halftime"
                                                 ? "HT"
