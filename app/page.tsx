@@ -487,7 +487,7 @@ export default function Home() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#168cab] focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#020817] text-white">
+    <main className="min-h-screen overflow-x-clip overflow-x-hidden bg-[#020817] text-white">
       {/* =====================================================
           HEADER
       ===================================================== */}
@@ -1822,7 +1822,7 @@ export default function Home() {
       <section
         id="club"
         aria-labelledby="titulo-club"
-        className="bg-[#f4f3ef] px-4 py-16 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
+        className="bg-[#f4f3ef] px-4 py-14 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
       >
         <div className="mx-auto max-w-[1550px]">
           <div className="flex flex-col gap-6 border-b border-black/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
@@ -2138,7 +2138,7 @@ export default function Home() {
           HOME 2.0 · ENTRADAS
       ===================================================== */}
 
-      <section className="bg-[#06142d] px-4 py-16 text-white sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16">
+      <section className="bg-[#06142d] px-4 py-14 text-white sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16">
         <div className="mx-auto max-w-[1550px]">
           <div className="flex flex-col gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -2276,7 +2276,7 @@ export default function Home() {
 
       <section
         aria-labelledby="titulo-ecosistema"
-        className="bg-white px-4 py-16 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
+        className="bg-white px-4 py-14 text-[#06142d] sm:px-8 sm:py-24 lg:px-12 lg:py-28 xl:px-16"
       >
         <div className="mx-auto max-w-[1550px]">
           <div className="grid gap-8 border-b border-black/10 pb-9 lg:grid-cols-[1fr_0.72fr] lg:items-end">
@@ -2418,7 +2418,7 @@ export default function Home() {
               </p>
               <Link
                 href="/partidos/genesis-vs-olancho"
-                className={`mt-6 inline-flex rounded-full bg-white px-5 py-3 text-[7px] font-black uppercase tracking-[0.14em] text-[#06142d] transition hover:bg-[#06142d] hover:text-white ${focusDark}`}
+                className={`mt-6 inline-flex max-w-full items-center justify-center rounded-full bg-white px-5 py-3 text-center text-[7px] font-black uppercase tracking-[0.12em] text-[#06142d] transition hover:bg-[#06142d] hover:text-white ${focusDark}`}
               >
                 Abrir Match Center →
               </Link>
