@@ -1004,7 +1004,7 @@ export default function CheckoutPage() {
                                                 item
                                             ) => (
                                                 <div
-                                                    key={`${item.id}-${item.talla}`}
+                                                    key={`${item.id}-${item.talla}-${item.nombrePersonalizado ?? ""}-${item.numeroPersonalizado ?? ""}`}
                                                     className="py-5"
                                                 >
                                                     <div className="flex items-start justify-between gap-4">
@@ -1025,6 +1025,24 @@ export default function CheckoutPage() {
                                                                     item.cantidad
                                                                 }
                                                             </p>
+
+                                                            {(item.nombrePersonalizado ||
+                                                                item.numeroPersonalizado) && (
+                                                                <div className="mt-3 border-l-2 border-[#5cc8ff] pl-3">
+                                                                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#5cc8ff]">
+                                                                        Personalización
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-[9px] font-black uppercase leading-5 text-white/75">
+                                                                        {item.nombrePersonalizado
+                                                                            ? `Nombre: ${item.nombrePersonalizado}`
+                                                                            : "Sin nombre"}
+                                                                        {item.numeroPersonalizado
+                                                                            ? ` · Número: ${item.numeroPersonalizado}`
+                                                                            : ""}
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <p className="whitespace-nowrap text-sm font-black">
@@ -1506,7 +1524,7 @@ export default function CheckoutPage() {
                                                 item
                                             ) => (
                                                 <div
-                                                    key={`${item.id}-${item.talla}`}
+                                                    key={`${item.id}-${item.talla}-${item.nombrePersonalizado ?? ""}-${item.numeroPersonalizado ?? ""}`}
                                                     className="py-5"
                                                 >
                                                     <div className="flex items-start justify-between gap-5">
@@ -1527,6 +1545,24 @@ export default function CheckoutPage() {
                                                                     item.cantidad
                                                                 }
                                                             </p>
+
+                                                            {(item.nombrePersonalizado ||
+                                                                item.numeroPersonalizado) && (
+                                                                <div className="mt-3 border-l-2 border-[#158bd2] pl-3">
+                                                                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#158bd2]">
+                                                                        Personalización
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-[9px] font-black uppercase leading-5 text-[#0b1f43]/65">
+                                                                        {item.nombrePersonalizado
+                                                                            ? `Nombre: ${item.nombrePersonalizado}`
+                                                                            : "Sin nombre"}
+                                                                        {item.numeroPersonalizado
+                                                                            ? ` · Número: ${item.numeroPersonalizado}`
+                                                                            : ""}
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <p className="text-sm font-black">

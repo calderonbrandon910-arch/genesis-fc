@@ -11,6 +11,9 @@ export default function JerseyVisitantePage() {
     const [tallaSeleccionada, setTallaSeleccionada] = useState("M");
     const [cantidad, setCantidad] = useState(1);
     const [agregado, setAgregado] = useState(false);
+    const [personalizar, setPersonalizar] = useState(false);
+    const [nombrePersonalizado, setNombrePersonalizado] = useState("");
+    const [numeroPersonalizado, setNumeroPersonalizado] = useState("");
 
     const { addItem, totalItems } = useCart();
 
@@ -35,6 +38,12 @@ export default function JerseyVisitantePage() {
             cantidad,
             imagen: "/jersey-visitante-modelo.png",
             href: "/tienda/jersey-visitante",
+            nombrePersonalizado: personalizar
+                ? nombrePersonalizado.trim().toUpperCase()
+                : undefined,
+            numeroPersonalizado: personalizar
+                ? numeroPersonalizado.trim()
+                : undefined,
         });
 
         setAgregado(true);
@@ -236,6 +245,105 @@ export default function JerseyVisitantePage() {
                                             );
                                         })}
                                     </div>
+                                </div>
+
+                                {/* PERSONALIZACIÓN */}
+                                <div className="mt-9 border-t border-[#0b1f43]/10 pt-8">
+                                    <div className="flex items-start justify-between gap-5">
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.26em]">
+                                                Personalización
+                                            </p>
+
+                                            <p className="mt-2 max-w-sm text-xs leading-5 text-[#0b1f43]/45">
+                                                Agrega nombre y número al jersey. Es opcional.
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPersonalizar((actual) => !actual);
+
+                                                if (personalizar) {
+                                                    setNombrePersonalizado("");
+                                                    setNumeroPersonalizado("");
+                                                }
+                                            }}
+                                            className={`min-w-[106px] border px-4 py-3 text-[8px] font-black uppercase tracking-[0.18em] transition ${
+                                                personalizar
+                                                    ? "border-[#158bd2] bg-[#158bd2] text-white"
+                                                    : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
+                                            }`}
+                                        >
+                                            {personalizar ? "Activada" : "Personalizar"}
+                                        </button>
+                                    </div>
+
+                                    {personalizar && (
+                                        <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_140px]">
+                                            <label className="block">
+                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#0b1f43]/45">
+                                                    Nombre
+                                                </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={nombrePersonalizado}
+                                                    maxLength={12}
+                                                    onChange={(event) => {
+                                                        const valor = event.target.value
+                                                            .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]/g, "")
+                                                            .slice(0, 12);
+
+                                                        setNombrePersonalizado(valor);
+                                                    }}
+                                                    placeholder="SANCHEZ"
+                                                    className="mt-2 h-12 w-full border border-[#0b1f43]/15 bg-white px-4 text-sm font-black uppercase outline-none transition placeholder:text-[#0b1f43]/20 focus:border-[#158bd2]"
+                                                />
+                                            </label>
+
+                                            <label className="block">
+                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#0b1f43]/45">
+                                                    Número
+                                                </span>
+
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={numeroPersonalizado}
+                                                    maxLength={2}
+                                                    onChange={(event) =>
+                                                        setNumeroPersonalizado(
+                                                            event.target.value
+                                                                .replace(/\D/g, "")
+                                                                .slice(0, 2)
+                                                        )
+                                                    }
+                                                    placeholder="10"
+                                                    className="mt-2 h-12 w-full border border-[#0b1f43]/15 bg-white px-4 text-sm font-black outline-none transition placeholder:text-[#0b1f43]/20 focus:border-[#158bd2]"
+                                                />
+                                            </label>
+
+                                            {(nombrePersonalizado ||
+                                                numeroPersonalizado) && (
+                                                <div className="border border-[#158bd2]/20 bg-[#edf8ff] px-4 py-4 sm:col-span-2">
+                                                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#158bd2]">
+                                                        Vista de personalización
+                                                    </p>
+
+                                                    <p className="mt-2 text-xs font-black uppercase text-[#0b1f43]">
+                                                        {nombrePersonalizado
+                                                            ? `Nombre: ${nombrePersonalizado.trim().toUpperCase()}`
+                                                            : "Sin nombre"}
+                                                        {numeroPersonalizado
+                                                            ? ` · Número: ${numeroPersonalizado}`
+                                                            : ""}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* CANTIDAD */}

@@ -156,6 +156,10 @@ export default function PagoPage() {
                                 talla: item.talla,
                                 cantidad:
                                     item.cantidad,
+                                nombrePersonalizado:
+                                    item.nombrePersonalizado,
+                                numeroPersonalizado:
+                                    item.numeroPersonalizado,
                             })
                         ),
 
@@ -796,7 +800,7 @@ export default function PagoPage() {
                                         {items.map(
                                             (item) => (
                                                 <div
-                                                    key={`${item.id}-${item.talla}`}
+                                                    key={`${item.id}-${item.talla}-${item.nombrePersonalizado ?? ""}-${item.numeroPersonalizado ?? ""}`}
                                                     className="py-5"
                                                 >
                                                     <div className="flex items-start justify-between gap-5">
@@ -817,6 +821,25 @@ export default function PagoPage() {
                                                                     item.cantidad
                                                                 }
                                                             </p>
+
+                                                            {(item.nombrePersonalizado ||
+                                                                item.numeroPersonalizado) && (
+                                                                <div className="mt-3 border-l-2 border-[#158bd2] pl-3">
+                                                                    <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#158bd2]">
+                                                                        Personalización
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-[9px] font-black uppercase tracking-[0.14em] text-[#0b1f43]/55">
+                                                                        {item.nombrePersonalizado
+                                                                            ? `Nombre: ${item.nombrePersonalizado}`
+                                                                            : "Sin nombre"}
+                                                                        {" · "}
+                                                                        {item.numeroPersonalizado
+                                                                            ? `Número: ${item.numeroPersonalizado}`
+                                                                            : "Sin número"}
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <p className="whitespace-nowrap text-sm font-black">

@@ -17,6 +17,9 @@ export type CartItem = {
     cantidad: number;
     imagen: string;
     href: string;
+
+    nombrePersonalizado?: string;
+    numeroPersonalizado?: string;
 };
 
 export type CheckoutData = {
@@ -43,13 +46,17 @@ type CartContextType = {
 
     removeItem: (
         id: string,
-        talla: string
+        talla: string,
+        nombrePersonalizado?: string,
+        numeroPersonalizado?: string
     ) => void;
 
     updateQuantity: (
         id: string,
         talla: string,
-        cantidad: number
+        cantidad: number,
+        nombrePersonalizado?: string,
+        numeroPersonalizado?: string
     ) => void;
 
     clearCart: () => void;
@@ -73,6 +80,93 @@ const CART_STORAGE_KEY =
 
 const CHECKOUT_STORAGE_KEY =
     "genesis-fc-checkout";
+
+function normalizarNombrePersonalizado(
+    valor?: string
+) {
+    return (valor ?? "")
+        .trim()
+        .replace(/\s+/g, " ");
+}
+
+function normalizarNumeroPersonalizado(
+    valor?: string
+) {
+    return (valor ?? "")
+        .trim()
+        .replace(/\s+/g, "");
+}
+
+function mismaPersonalizacion(
+    item: CartItem,
+    otroItem: CartItem
+) {
+    return (
+        normalizarNombrePersonalizado(
+            item.nombrePersonalizado
+        ).toUpperCase() ===
+            normalizarNombrePersonalizado(
+                otroItem.nombrePersonalizado
+            ).toUpperCase() &&
+        normalizarNumeroPersonalizado(
+            item.numeroPersonalizado
+        ) ===
+            normalizarNumeroPersonalizado(
+                otroItem.numeroPersonalizado
+            )
+    );
+}
+
+function coincideItem(
+    item: CartItem,
+    id: string,
+    talla: string,
+    nombrePersonalizado?: string,
+    numeroPersonalizado?: string
+) {
+    return (
+        item.id === id &&
+        item.talla === talla &&
+        normalizarNombrePersonalizado(
+            item.nombrePersonalizado
+        ).toUpperCase() ===
+            normalizarNombrePersonalizado(
+                nombrePersonalizado
+            ).toUpperCase() &&
+        normalizarNumeroPersonalizado(
+            item.numeroPersonalizado
+        ) ===
+            normalizarNumeroPersonalizado(
+                numeroPersonalizado
+            )
+    );
+}
+
+function normalizarCartItem(
+    item: CartItem
+): CartItem {
+    const nombrePersonalizado =
+        normalizarNombrePersonalizado(
+            item.nombrePersonalizado
+        );
+
+    const numeroPersonalizado =
+        normalizarNumeroPersonalizado(
+            item.numeroPersonalizado
+        );
+
+    return {
+        ...item,
+
+        nombrePersonalizado:
+            nombrePersonalizado ||
+            undefined,
+
+        numeroPersonalizado:
+            numeroPersonalizado ||
+            undefined,
+    };
+}
 
 export function CartProvider({
     children,
@@ -110,7 +204,21 @@ export function CartProvider({
                     ) as CartItem[];
 
                 if (Array.isArray(parsedCart)) {
-                    setItems(parsedCart);
+                    const carritoNormalizado =
+                        parsedCart
+                            .filter(
+                                (item) =>
+                                    item &&
+                                    typeof item ===
+                                        "object"
+                            )
+                            .map(
+                                normalizarCartItem
+                            );
+
+                    setItems(
+                        carritoNormalizado
+                    );
                 }
             }
 
@@ -251,14 +359,23 @@ export function CartProvider({
     const addItem = (
         newItem: CartItem
     ) => {
+        const itemNormalizado =
+            normalizarCartItem(
+                newItem
+            );
+
         setItems((currentItems) => {
             const existingItem =
                 currentItems.find(
                     (item) =>
                         item.id ===
-                            newItem.id &&
+                            itemNormalizado.id &&
                         item.talla ===
-                            newItem.talla
+                            itemNormalizado.talla &&
+                        mismaPersonalizacion(
+                            item,
+                            itemNormalizado
+                        )
                 );
 
             if (existingItem) {
@@ -266,16 +383,21 @@ export function CartProvider({
                     (item) => {
                         if (
                             item.id ===
-                                newItem.id &&
+                                itemNormalizado.id &&
                             item.talla ===
-                                newItem.talla
+                                itemNormalizado.talla &&
+                            mismaPersonalizacion(
+                                item,
+                                itemNormalizado
+                            )
                         ) {
                             return {
                                 ...item,
+
                                 cantidad:
                                     Math.min(
                                         item.cantidad +
-                                            newItem.cantidad,
+                                            itemNormalizado.cantidad,
                                         10
                                     ),
                             };
@@ -288,24 +410,27 @@ export function CartProvider({
 
             return [
                 ...currentItems,
-                newItem,
+                itemNormalizado,
             ];
         });
     };
 
     const removeItem = (
         id: string,
-        talla: string
+        talla: string,
+        nombrePersonalizado?: string,
+        numeroPersonalizado?: string
     ) => {
         setItems(
             (currentItems) =>
                 currentItems.filter(
                     (item) =>
-                        !(
-                            item.id ===
-                                id &&
-                            item.talla ===
-                                talla
+                        !coincideItem(
+                            item,
+                            id,
+                            talla,
+                            nombrePersonalizado,
+                            numeroPersonalizado
                         )
                 )
         );
@@ -314,12 +439,16 @@ export function CartProvider({
     const updateQuantity = (
         id: string,
         talla: string,
-        cantidad: number
+        cantidad: number,
+        nombrePersonalizado?: string,
+        numeroPersonalizado?: string
     ) => {
         if (cantidad <= 0) {
             removeItem(
                 id,
-                talla
+                talla,
+                nombrePersonalizado,
+                numeroPersonalizado
             );
 
             return;
@@ -330,13 +459,17 @@ export function CartProvider({
                 currentItems.map(
                     (item) => {
                         if (
-                            item.id ===
-                                id &&
-                            item.talla ===
-                                talla
+                            coincideItem(
+                                item,
+                                id,
+                                talla,
+                                nombrePersonalizado,
+                                numeroPersonalizado
+                            )
                         ) {
                             return {
                                 ...item,
+
                                 cantidad:
                                     Math.min(
                                         cantidad,

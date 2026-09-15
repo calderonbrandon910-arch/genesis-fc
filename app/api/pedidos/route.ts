@@ -30,6 +30,8 @@ type ProductoEntrada = {
     id: string;
     talla: string;
     cantidad: number;
+    nombrePersonalizado?: string;
+    numeroPersonalizado?: string;
 };
 
 type ClienteEntrada = {
@@ -161,6 +163,9 @@ const PRODUCTOS =
 
                     tallas:
                         producto.tallas,
+
+                    personalizable:
+                        producto.personalizable,
                 },
             ]
         )
@@ -170,6 +175,7 @@ const PRODUCTOS =
             nombre: string;
             precio: number;
             tallas: string[];
+            personalizable: boolean;
         }
     >;
 
@@ -1094,6 +1100,12 @@ export async function POST(
                 number;
 
             subtotal: number;
+
+            nombre_personalizado:
+                string | null;
+
+            numero_personalizado:
+                string | null;
         }[] = [];
 
         for (
@@ -1193,6 +1205,88 @@ export async function POST(
             }
 
             /* =============================================
+               PERSONALIZACIÓN
+            ============================================= */
+
+            const nombrePersonalizado =
+                typeof producto.nombrePersonalizado ===
+                "string"
+                    ? producto.nombrePersonalizado
+                          .trim()
+                          .replace(/\s+/g, " ")
+                          .toUpperCase()
+                    : "";
+
+            const numeroPersonalizado =
+                typeof producto.numeroPersonalizado ===
+                "string"
+                    ? producto.numeroPersonalizado.trim()
+                    : "";
+
+            const tienePersonalizacion =
+                nombrePersonalizado.length > 0 ||
+                numeroPersonalizado.length > 0;
+
+            if (
+                tienePersonalizacion &&
+                !productoOficial.personalizable
+            ) {
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        error:
+                            "Este producto no permite personalización.",
+                    },
+                    {
+                        status: 400,
+                    }
+                );
+            }
+
+            if (
+                nombrePersonalizado &&
+                (
+                    nombrePersonalizado.length >
+                        12 ||
+                    !/^[A-ZÁÉÍÓÚÜÑ ]+$/.test(
+                        nombrePersonalizado
+                    )
+                )
+            ) {
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        error:
+                            "El nombre de personalización no es válido.",
+                    },
+                    {
+                        status: 400,
+                    }
+                );
+            }
+
+            if (
+                numeroPersonalizado &&
+                !/^\d{1,2}$/.test(
+                    numeroPersonalizado
+                )
+            ) {
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        error:
+                            "El número de personalización no es válido.",
+                    },
+                    {
+                        status: 400,
+                    }
+                );
+            }
+
+            /* =============================================
                PRECIO CALCULADO POR EL SERVIDOR
 
                Nunca confiamos en precios enviados
@@ -1227,6 +1321,14 @@ export async function POST(
                         productoOficial.precio,
 
                     subtotal,
+
+                    nombre_personalizado:
+                        nombrePersonalizado ||
+                        null,
+
+                    numero_personalizado:
+                        numeroPersonalizado ||
+                        null,
                 }
             );
         }

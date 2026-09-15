@@ -252,46 +252,6 @@ export default async function TiendaPage() {
             </section>
 
             {/* =====================================================
-                COMMERCE CENTER
-            ===================================================== */}
-
-            <section className="bg-[#f7f7f5] px-5 pt-12 sm:px-8 lg:px-10 lg:pt-16">
-                <div className="mx-auto max-w-[1600px]">
-                    <div className="grid gap-4 border border-[#0b1f43]/10 bg-white p-5 sm:grid-cols-3 sm:p-6">
-                        <div>
-                            <p className="text-[8px] font-black uppercase tracking-[0.26em] text-[#158bd2]">
-                                Commerce Center
-                            </p>
-
-                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
-                                Inventario por talla
-                            </p>
-                        </div>
-
-                        <div className="border-[#0b1f43]/10 sm:border-l sm:pl-6">
-                            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#0b1f43]/35">
-                                Categoría activa
-                            </p>
-
-                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
-                                Jerseys
-                            </p>
-                        </div>
-
-                        <div className="border-[#0b1f43]/10 sm:border-l sm:pl-6">
-                            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#0b1f43]/35">
-                                Estado del sistema
-                            </p>
-
-                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
-                                Stock conectado a Supabase
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* =====================================================
                 INTRO COLECCIÓN
             ===================================================== */}
 

@@ -11,6 +11,9 @@ export default function JerseyBlancoPage() {
     const [tallaSeleccionada, setTallaSeleccionada] = useState("M");
     const [cantidad, setCantidad] = useState(1);
     const [agregado, setAgregado] = useState(false);
+    const [personalizar, setPersonalizar] = useState(false);
+    const [nombrePersonalizado, setNombrePersonalizado] = useState("");
+    const [numeroPersonalizado, setNumeroPersonalizado] = useState("");
 
     const { addItem, totalItems } = useCart();
 
@@ -27,6 +30,9 @@ export default function JerseyBlancoPage() {
     };
 
     const agregarAlCarrito = () => {
+        const nombreLimpio = nombrePersonalizado.trim().toUpperCase();
+        const numeroLimpio = numeroPersonalizado.trim();
+
         addItem({
             id: "jersey-blanco",
             nombre: "Jersey Blanco",
@@ -35,6 +41,14 @@ export default function JerseyBlancoPage() {
             cantidad,
             imagen: "/tienda-hero.jpg",
             href: "/tienda/jersey-blanco",
+            nombrePersonalizado:
+                personalizar && nombreLimpio
+                    ? nombreLimpio
+                    : undefined,
+            numeroPersonalizado:
+                personalizar && numeroLimpio
+                    ? numeroLimpio
+                    : undefined,
         });
 
         setAgregado(true);
@@ -238,6 +252,104 @@ export default function JerseyBlancoPage() {
                                             );
                                         })}
                                     </div>
+                                </div>
+
+                                {/* PERSONALIZACIÓN */}
+                                <div className="mt-9 border-t border-[#0b1f43]/10 pt-8">
+                                    <div className="flex items-start justify-between gap-5">
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.26em]">
+                                                Personalización
+                                            </p>
+
+                                            <p className="mt-2 max-w-sm text-xs leading-5 text-[#0b1f43]/45">
+                                                Agrega nombre y número al jersey. Es opcional.
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPersonalizar((actual) => !actual);
+
+                                                if (personalizar) {
+                                                    setNombrePersonalizado("");
+                                                    setNumeroPersonalizado("");
+                                                }
+                                            }}
+                                            className={`min-w-[106px] border px-4 py-3 text-[8px] font-black uppercase tracking-[0.18em] transition ${
+                                                personalizar
+                                                    ? "border-[#158bd2] bg-[#158bd2] text-white"
+                                                    : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
+                                            }`}
+                                        >
+                                            {personalizar ? "Activada" : "Personalizar"}
+                                        </button>
+                                    </div>
+
+                                    {personalizar && (
+                                        <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_150px]">
+                                            <label>
+                                                <span className="mb-2 block text-[8px] font-black uppercase tracking-[0.2em] text-[#0b1f43]/40">
+                                                    Nombre
+                                                </span>
+
+                                                <input
+                                                    type="text"
+                                                    value={nombrePersonalizado}
+                                                    maxLength={12}
+                                                    onChange={(event) =>
+                                                        setNombrePersonalizado(
+                                                            event.target.value
+                                                                .replace(/[^a-zA-ZÁÉÍÓÚÜÑáéíóúüñ ]/g, "")
+                                                                .slice(0, 12)
+                                                        )
+                                                    }
+                                                    placeholder="Ej. CALDERON"
+                                                    className="h-12 w-full border border-[#0b1f43]/15 bg-white px-4 text-sm font-black uppercase outline-none transition placeholder:font-normal placeholder:text-[#0b1f43]/25 focus:border-[#158bd2]"
+                                                />
+                                            </label>
+
+                                            <label>
+                                                <span className="mb-2 block text-[8px] font-black uppercase tracking-[0.2em] text-[#0b1f43]/40">
+                                                    Número
+                                                </span>
+
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={numeroPersonalizado}
+                                                    maxLength={2}
+                                                    onChange={(event) =>
+                                                        setNumeroPersonalizado(
+                                                            event.target.value
+                                                                .replace(/\D/g, "")
+                                                                .slice(0, 2)
+                                                        )
+                                                    }
+                                                    placeholder="10"
+                                                    className="h-12 w-full border border-[#0b1f43]/15 bg-white px-4 text-center text-sm font-black outline-none transition placeholder:font-normal placeholder:text-[#0b1f43]/25 focus:border-[#158bd2]"
+                                                />
+                                            </label>
+
+                                            {(nombrePersonalizado.trim() || numeroPersonalizado.trim()) && (
+                                                <div className="border border-[#158bd2]/20 bg-[#edf8ff] p-4 sm:col-span-2">
+                                                    <p className="text-[7px] font-black uppercase tracking-[0.2em] text-[#158bd2]">
+                                                        Vista de personalización
+                                                    </p>
+
+                                                    <p className="mt-2 text-sm font-black uppercase">
+                                                        {nombrePersonalizado.trim()
+                                                            ? nombrePersonalizado.trim()
+                                                            : "Sin nombre"}
+                                                        {numeroPersonalizado.trim()
+                                                            ? ` · #${numeroPersonalizado.trim()}`
+                                                            : ""}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* CANTIDAD */}

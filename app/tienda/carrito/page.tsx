@@ -109,7 +109,7 @@ export default function CarritoPage() {
                             <div className="space-y-4">
                                 {items.map((item) => (
                                     <article
-                                        key={`${item.id}-${item.talla}`}
+                                        key={`${item.id}-${item.talla}-${item.nombrePersonalizado ?? ""}-${item.numeroPersonalizado ?? ""}`}
                                         className="grid overflow-hidden bg-white sm:grid-cols-[220px_1fr]"
                                     >
                                         <Link
@@ -146,7 +146,9 @@ export default function CarritoPage() {
                                                         onClick={() =>
                                                             removeItem(
                                                                 item.id,
-                                                                item.talla
+                                                                item.talla,
+                                                                item.nombrePersonalizado,
+                                                                item.numeroPersonalizado
                                                             )
                                                         }
                                                         className="text-[8px] font-black uppercase tracking-[0.2em] text-[#0b1f43]/35 transition hover:text-red-600"
@@ -154,6 +156,24 @@ export default function CarritoPage() {
                                                         Eliminar
                                                     </button>
                                                 </div>
+
+                                                {(item.nombrePersonalizado ||
+                                                    item.numeroPersonalizado) && (
+                                                    <div className="mt-5 border border-[#158bd2]/20 bg-[#edf8ff] p-4">
+                                                        <p className="text-[7px] font-black uppercase tracking-[0.22em] text-[#158bd2]">
+                                                            Personalización
+                                                        </p>
+
+                                                        <p className="mt-2 text-sm font-black uppercase">
+                                                            {item.nombrePersonalizado
+                                                                ? `Nombre: ${item.nombrePersonalizado}`
+                                                                : "Sin nombre"}
+                                                            {item.numeroPersonalizado
+                                                                ? ` · Número: ${item.numeroPersonalizado}`
+                                                                : ""}
+                                                        </p>
+                                                    </div>
+                                                )}
 
                                                 <div className="mt-6 grid grid-cols-2 gap-4 border-y border-[#0b1f43]/10 py-5">
                                                     <div>
@@ -195,7 +215,9 @@ export default function CarritoPage() {
                                                                     item.id,
                                                                     item.talla,
                                                                     item.cantidad -
-                                                                        1
+                                                                        1,
+                                                                    item.nombrePersonalizado,
+                                                                    item.numeroPersonalizado
                                                                 )
                                                             }
                                                             className="flex h-10 w-10 items-center justify-center transition hover:bg-[#f5f5f2]"
@@ -215,7 +237,9 @@ export default function CarritoPage() {
                                                                     item.id,
                                                                     item.talla,
                                                                     item.cantidad +
-                                                                        1
+                                                                        1,
+                                                                    item.nombrePersonalizado,
+                                                                    item.numeroPersonalizado
                                                                 )
                                                             }
                                                             className="flex h-10 w-10 items-center justify-center transition hover:bg-[#f5f5f2]"

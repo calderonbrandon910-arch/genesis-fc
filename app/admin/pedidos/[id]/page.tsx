@@ -44,6 +44,8 @@ type PedidoItem = {
     cantidad: number;
     precio_unitario: number;
     subtotal: number;
+    nombre_personalizado: string | null;
+    numero_personalizado: string | null;
     creado_en: string;
 };
 
@@ -653,6 +655,24 @@ export default function AdminPedidoDetallePage() {
                                             {item.talla}
                                         </span>
                                     </p>
+
+                                    {(item.nombre_personalizado ||
+                                        item.numero_personalizado) && (
+                                        <div className="mt-4 border border-[#158bd2]/20 bg-[#edf8ff] px-4 py-3">
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#158bd2]">
+                                                Personalización
+                                            </p>
+
+                                            <p className="mt-2 text-xs font-black uppercase leading-5 text-[#0b1f43]">
+                                                {item.nombre_personalizado
+                                                    ? `Nombre: ${item.nombre_personalizado}`
+                                                    : "Sin nombre"}
+                                                {item.numero_personalizado
+                                                    ? ` · Número: ${item.numero_personalizado}`
+                                                    : ""}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="sm:text-right">
