@@ -2,10 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "../CartProvider";
 
 const tallas = ["S", "M", "L", "XL", "2XL"];
+
+type StockPublicoItem = {
+    productoId: string;
+    talla: string;
+    stock: number;
+    disponible: boolean;
+};
+
+type StockPublicoRespuesta = {
+    ok: boolean;
+    stock?: StockPublicoItem[];
+    error?: string;
+};
 
 export default function JerseyVisitantePage() {
     const [tallaSeleccionada, setTallaSeleccionada] = useState("M");
@@ -14,12 +27,121 @@ export default function JerseyVisitantePage() {
     const [personalizar, setPersonalizar] = useState(false);
     const [nombrePersonalizado, setNombrePersonalizado] = useState("");
     const [numeroPersonalizado, setNumeroPersonalizado] = useState("");
+    const [stockPorTalla, setStockPorTalla] = useState<Record<string, number>>({});
+    const [cargandoStock, setCargandoStock] = useState(true);
+    const [errorStock, setErrorStock] = useState("");
 
     const { addItem, totalItems } = useCart();
 
-    const aumentarCantidad = () => {
+    const stockSeleccionado = stockPorTalla[tallaSeleccionada] ?? 0;
+    const tallaAgotada = !cargandoStock && stockSeleccionado <= 0;
+    const limiteCantidad = Math.min(stockSeleccionado, 10);
+
+    useEffect(() => {
+        let activo = true;
+
+        const cargarStock = async () => {
+            try {
+                setCargandoStock(true);
+                setErrorStock("");
+
+                const respuesta = await fetch(
+                    "/api/tienda/stock-publico",
+                    {
+                        method: "GET",
+                        cache: "no-store",
+                    }
+                );
+
+                const resultado =
+                    (await respuesta.json()) as StockPublicoRespuesta;
+
+                if (!respuesta.ok || !resultado.ok || !resultado.stock) {
+                    throw new Error(
+                        resultado.error ||
+                            "No se pudo consultar la disponibilidad."
+                    );
+                }
+
+                const stockVisitante = resultado.stock.filter(
+                    (item) => item.productoId === "jersey-visitante"
+                );
+
+                const nuevoStock: Record<string, number> = {};
+
+                tallas.forEach((talla) => {
+                    nuevoStock[talla] = 0;
+                });
+
+                stockVisitante.forEach((item) => {
+                    nuevoStock[item.talla] = Math.max(0, item.stock);
+                });
+
+                if (!activo) {
+                    return;
+                }
+
+                setStockPorTalla(nuevoStock);
+            } catch (error) {
+                console.error(
+                    "Error cargando stock del Jersey Visitante:",
+                    error
+                );
+
+                if (activo) {
+                    setErrorStock(
+                        "No pudimos consultar el inventario en este momento."
+                    );
+                }
+            } finally {
+                if (activo) {
+                    setCargandoStock(false);
+                }
+            }
+        };
+
+        void cargarStock();
+
+        return () => {
+            activo = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (cargandoStock) {
+            return;
+        }
+
+        const stockActual = stockPorTalla[tallaSeleccionada] ?? 0;
+
+        if (stockActual <= 0) {
+            setCantidad(1);
+            return;
+        }
+
         setCantidad((cantidadActual) =>
-            Math.min(cantidadActual + 1, 10)
+            Math.min(cantidadActual, Math.min(stockActual, 10))
+        );
+    }, [cargandoStock, stockPorTalla, tallaSeleccionada]);
+
+    const seleccionarTalla = (talla: string) => {
+        const stockTalla = stockPorTalla[talla] ?? 0;
+
+        if (!cargandoStock && stockTalla <= 0) {
+            return;
+        }
+
+        setTallaSeleccionada(talla);
+        setCantidad(1);
+    };
+
+    const aumentarCantidad = () => {
+        if (cargandoStock || errorStock || limiteCantidad <= 0) {
+            return;
+        }
+
+        setCantidad((cantidadActual) =>
+            Math.min(cantidadActual + 1, limiteCantidad)
         );
     };
 
@@ -30,6 +152,15 @@ export default function JerseyVisitantePage() {
     };
 
     const agregarAlCarrito = () => {
+        if (
+            cargandoStock ||
+            errorStock ||
+            stockSeleccionado <= 0 ||
+            cantidad > limiteCantidad
+        ) {
+            return;
+        }
+
         addItem({
             id: "jersey-visitante",
             nombre: "Jersey Visitante",
@@ -224,26 +355,68 @@ export default function JerseyVisitantePage() {
                                         {tallas.map((talla) => {
                                             const activa =
                                                 talla === tallaSeleccionada;
+                                            const stockTalla =
+                                                stockPorTalla[talla] ?? 0;
+                                            const agotada =
+                                                !cargandoStock &&
+                                                stockTalla <= 0;
 
                                             return (
                                                 <button
                                                     key={talla}
                                                     type="button"
-                                                    onClick={() =>
-                                                        setTallaSeleccionada(
-                                                            talla
-                                                        )
+                                                    disabled={
+                                                        cargandoStock ||
+                                                        Boolean(errorStock) ||
+                                                        agotada
                                                     }
-                                                    className={`flex h-12 items-center justify-center border text-[10px] font-black uppercase transition duration-200 ${
-                                                        activa
-                                                            ? "border-[#0b1f43] bg-[#0b1f43] text-white"
-                                                            : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
+                                                    onClick={() =>
+                                                        seleccionarTalla(talla)
+                                                    }
+                                                    className={`relative flex h-12 items-center justify-center border text-[10px] font-black uppercase transition duration-200 ${
+                                                        agotada
+                                                            ? "cursor-not-allowed border-[#0b1f43]/10 bg-[#f3f3f0] text-[#0b1f43]/25 line-through"
+                                                            : activa
+                                                              ? "border-[#0b1f43] bg-[#0b1f43] text-white"
+                                                              : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
+                                                    } ${
+                                                        cargandoStock || errorStock
+                                                            ? "cursor-not-allowed opacity-50"
+                                                            : ""
                                                     }`}
                                                 >
                                                     {talla}
                                                 </button>
                                             );
                                         })}
+                                    </div>
+
+                                    <div className="mt-4 min-h-5">
+                                        {cargandoStock ? (
+                                            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#0b1f43]/35">
+                                                Consultando disponibilidad...
+                                            </p>
+                                        ) : errorStock ? (
+                                            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-red-600">
+                                                {errorStock}
+                                            </p>
+                                        ) : stockSeleccionado <= 0 ? (
+                                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-red-600">
+                                                Talla agotada
+                                            </p>
+                                        ) : stockSeleccionado === 1 ? (
+                                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#158bd2]">
+                                                Última unidad disponible
+                                            </p>
+                                        ) : stockSeleccionado <= 3 ? (
+                                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#158bd2]">
+                                                Solo quedan {stockSeleccionado} unidades
+                                            </p>
+                                        ) : (
+                                            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#0b1f43]/35">
+                                                {stockSeleccionado} unidades disponibles
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -369,12 +542,26 @@ export default function JerseyVisitantePage() {
                                         <button
                                             type="button"
                                             onClick={aumentarCantidad}
-                                            className="flex h-12 w-12 items-center justify-center text-lg transition hover:bg-[#f3f3f0]"
+                                            disabled={
+                                                cargandoStock ||
+                                                Boolean(errorStock) ||
+                                                tallaAgotada ||
+                                                cantidad >= limiteCantidad
+                                            }
+                                            className="flex h-12 w-12 items-center justify-center text-lg transition hover:bg-[#f3f3f0] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
                                             aria-label="Aumentar cantidad"
                                         >
                                             +
                                         </button>
                                     </div>
+
+                                    {!cargandoStock &&
+                                        !errorStock &&
+                                        stockSeleccionado > 0 && (
+                                            <p className="mt-3 text-[8px] font-bold uppercase tracking-[0.16em] text-[#0b1f43]/35">
+                                                Máximo disponible para esta talla: {limiteCantidad}
+                                            </p>
+                                        )}
                                 </div>
 
                                 {/* TOTAL */}
@@ -404,18 +591,30 @@ export default function JerseyVisitantePage() {
                                     <button
                                         type="button"
                                         onClick={agregarAlCarrito}
-                                        className={`flex w-full items-center justify-between px-6 py-5 text-[9px] font-black uppercase tracking-[0.22em] text-white transition duration-300 ${
+                                        disabled={
+                                            cargandoStock ||
+                                            Boolean(errorStock) ||
+                                            tallaAgotada ||
+                                            cantidad > limiteCantidad
+                                        }
+                                        className={`flex w-full items-center justify-between px-6 py-5 text-[9px] font-black uppercase tracking-[0.22em] text-white transition duration-300 disabled:cursor-not-allowed disabled:bg-[#0b1f43]/35 ${
                                             agregado
                                                 ? "bg-[#158bd2]"
                                                 : "bg-[#0b1f43] hover:bg-[#158bd2]"
                                         }`}
                                     >
-                                        {agregado
-                                            ? "Agregado al carrito"
-                                            : "Agregar al carrito"}
+                                        {cargandoStock
+                                            ? "Consultando stock"
+                                            : errorStock
+                                              ? "Disponibilidad no disponible"
+                                              : tallaAgotada
+                                                ? "Talla agotada"
+                                                : agregado
+                                                  ? "Agregado al carrito"
+                                                  : "Agregar al carrito"}
 
                                         <span>
-                                            {agregado ? "✓" : "→"}
+                                            {agregado && !tallaAgotada ? "✓" : "→"}
                                         </span>
                                     </button>
 
