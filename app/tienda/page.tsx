@@ -1,11 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import CartLink from "./CartLink";
+import { obtenerInventarioTienda } from "../../lib/tienda/stock/server";
 
 import {
     productosTienda,
     puntosVenta,
+    type EstadoStock,
 } from "../../lib/datos-tienda";
+
+export const dynamic = "force-dynamic";
 
 /* =========================================================
    PRODUCTOS
@@ -40,10 +44,77 @@ const genesisShop = puntosVenta.find(
 )!;
 
 /* =========================================================
+   COMMERCE CENTER · STOCK
+========================================================= */
+
+function obtenerPresentacionStock(
+    estado: EstadoStock
+) {
+    if (estado === "disponible") {
+        return {
+            etiqueta: "Disponible",
+            detalle: "Stock disponible",
+            clase:
+                "border-emerald-200 bg-emerald-50 text-emerald-700",
+        };
+    }
+
+    if (estado === "pocas-unidades") {
+        return {
+            etiqueta: "Pocas unidades",
+            detalle: "Últimas unidades disponibles",
+            clase:
+                "border-amber-200 bg-amber-50 text-amber-700",
+        };
+    }
+
+    if (estado === "agotado") {
+        return {
+            etiqueta: "Agotado",
+            detalle: "Temporalmente sin stock",
+            clase:
+                "border-red-200 bg-red-50 text-red-700",
+        };
+    }
+
+    return {
+        etiqueta: "Stock por confirmar",
+        detalle: "Inventario pendiente de sincronización",
+        clase:
+            "border-[#158bd2]/20 bg-[#158bd2]/5 text-[#0b1f43]/55",
+    };
+}
+
+/* =========================================================
    PÁGINA
 ========================================================= */
 
-export default function TiendaPage() {
+export default async function TiendaPage() {
+    const inventario =
+        await obtenerInventarioTienda();
+
+    const estadoJerseyBlanco =
+        obtenerPresentacionStock(
+            inventario[jerseyBlanco.id]
+                ?.estado ??
+                "sin-configurar"
+        );
+
+    const estadoJerseyAzul =
+        obtenerPresentacionStock(
+            inventario[jerseyAzul.id]
+                ?.estado ??
+                "sin-configurar"
+        );
+
+    const estadoJerseyVisitante =
+        obtenerPresentacionStock(
+            inventario[
+                jerseyVisitante.id
+            ]?.estado ??
+                "sin-configurar"
+        );
+
     return (
         <main className="overflow-hidden bg-[#f7f7f5] text-[#0b1f43]">
             {/* =====================================================
@@ -181,6 +252,46 @@ export default function TiendaPage() {
             </section>
 
             {/* =====================================================
+                COMMERCE CENTER
+            ===================================================== */}
+
+            <section className="bg-[#f7f7f5] px-5 pt-12 sm:px-8 lg:px-10 lg:pt-16">
+                <div className="mx-auto max-w-[1600px]">
+                    <div className="grid gap-4 border border-[#0b1f43]/10 bg-white p-5 sm:grid-cols-3 sm:p-6">
+                        <div>
+                            <p className="text-[8px] font-black uppercase tracking-[0.26em] text-[#158bd2]">
+                                Commerce Center
+                            </p>
+
+                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
+                                Inventario por talla
+                            </p>
+                        </div>
+
+                        <div className="border-[#0b1f43]/10 sm:border-l sm:pl-6">
+                            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#0b1f43]/35">
+                                Categoría activa
+                            </p>
+
+                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
+                                Jerseys
+                            </p>
+                        </div>
+
+                        <div className="border-[#0b1f43]/10 sm:border-l sm:pl-6">
+                            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#0b1f43]/35">
+                                Estado del sistema
+                            </p>
+
+                            <p className="mt-2 text-sm font-black uppercase text-[#0b1f43]">
+                                Stock conectado a Supabase
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* =====================================================
                 INTRO COLECCIÓN
             ===================================================== */}
 
@@ -263,6 +374,18 @@ export default function TiendaPage() {
                                 <p className="mt-5 text-2xl font-black">
                                     {jerseyBlanco.precioTexto}
                                 </p>
+
+                                <div className="mt-5 flex flex-wrap items-center gap-3">
+                                    <span
+                                        className={`inline-flex border px-4 py-2 text-[8px] font-black uppercase tracking-[0.16em] ${estadoJerseyBlanco.clase}`}
+                                    >
+                                        {estadoJerseyBlanco.etiqueta}
+                                    </span>
+
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#0b1f43]/35">
+                                        {estadoJerseyBlanco.detalle}
+                                    </span>
+                                </div>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
                                     {jerseyBlanco.descripcion}
@@ -353,6 +476,18 @@ export default function TiendaPage() {
                                 <p className="mt-5 text-2xl font-black">
                                     {jerseyAzul.precioTexto}
                                 </p>
+
+                                <div className="mt-5 flex flex-wrap items-center gap-3">
+                                    <span
+                                        className={`inline-flex border px-4 py-2 text-[8px] font-black uppercase tracking-[0.16em] ${estadoJerseyAzul.clase}`}
+                                    >
+                                        {estadoJerseyAzul.etiqueta}
+                                    </span>
+
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#0b1f43]/35">
+                                        {estadoJerseyAzul.detalle}
+                                    </span>
+                                </div>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
                                     {jerseyAzul.descripcion}
@@ -485,6 +620,18 @@ export default function TiendaPage() {
                                 <p className="mt-5 text-2xl font-black">
                                     {jerseyVisitante.precioTexto}
                                 </p>
+
+                                <div className="mt-5 flex flex-wrap items-center gap-3">
+                                    <span
+                                        className={`inline-flex border px-4 py-2 text-[8px] font-black uppercase tracking-[0.16em] ${estadoJerseyVisitante.clase}`}
+                                    >
+                                        {estadoJerseyVisitante.etiqueta}
+                                    </span>
+
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#0b1f43]/35">
+                                        {estadoJerseyVisitante.detalle}
+                                    </span>
+                                </div>
 
                                 <p className="mt-8 max-w-md text-sm leading-7 text-[#0b1f43]/50">
                                     {jerseyVisitante.descripcion}
