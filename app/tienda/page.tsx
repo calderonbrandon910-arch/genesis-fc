@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import CartLink from "./CartLink";
+import FavoriteButton from "./FavoriteButton";
 import { obtenerInventarioTienda } from "../../lib/tienda/stock/server";
 
 import {
@@ -152,7 +153,17 @@ export default async function TiendaPage() {
                                 </div>
 
                                 <div className="flex flex-col items-end gap-3">
-                                    <CartLink />
+                                    <div className="flex flex-wrap items-center justify-end gap-2">
+                                        <Link
+                                            href="/tienda/favoritos"
+                                            className="inline-flex items-center gap-2 border border-[#0b1f43]/10 bg-white px-4 py-3 text-[8px] font-black uppercase tracking-[0.18em] text-[#0b1f43] transition hover:border-[#158bd2] hover:text-[#158bd2]"
+                                        >
+                                            <span aria-hidden="true">♡</span>
+                                            Favoritos
+                                        </Link>
+
+                                        <CartLink />
+                                    </div>
 
                                     <span className="hidden text-[8px] font-bold uppercase tracking-[0.24em] text-[#0b1f43]/30 sm:block">
                                         Honduras
@@ -290,10 +301,12 @@ export default async function TiendaPage() {
             <section className="bg-[#f7f7f5] px-5 pb-14 sm:px-8 lg:px-10 lg:pb-20">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[1.18fr_0.82fr]">
-                        <Link
-                            href={jerseyBlanco.enlace}
-                            className="group relative min-h-[650px] overflow-hidden bg-[#e8edf2] lg:min-h-[820px]"
-                        >
+                        <div className="group relative min-h-[650px] overflow-hidden bg-[#e8edf2] lg:min-h-[820px]">
+                            <Link
+                                href={jerseyBlanco.enlace}
+                                aria-label="Ver Jersey Blanco"
+                                className="absolute inset-0 z-10"
+                            />
                             <Image
                                 src={jerseyBlanco.imagen}
                                 alt="Modelo usando el uniforme alternativo de Génesis FC"
@@ -304,12 +317,22 @@ export default async function TiendaPage() {
 
                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/20 to-transparent" />
 
-                            <div className="absolute left-5 top-5 bg-white px-4 py-3 sm:left-7 sm:top-7">
+                            <div className="absolute z-20 left-5 top-5 bg-white px-4 py-3 sm:left-7 sm:top-7">
                                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#0b1f43]">
                                     Uniforme Alternativo
                                 </p>
                             </div>
-                        </Link>
+
+                            <div className="absolute right-5 top-5 sm:right-7 sm:top-7 z-30">
+                                <FavoriteButton
+                                    productoId={jerseyBlanco.id}
+                                    nombre="Jersey Blanco"
+                                    enlace={jerseyBlanco.enlace}
+                                    imagen={jerseyBlanco.imagen}
+                                    precioTexto={jerseyBlanco.precioTexto}
+                                />
+                            </div>
+                        </div>
 
                         <div className="flex flex-col justify-between px-7 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14 xl:px-16">
                             <div>
@@ -505,10 +528,12 @@ export default async function TiendaPage() {
                             </div>
                         </div>
 
-                        <Link
-                            href={jerseyAzul.enlace}
-                            className="group relative order-1 min-h-[650px] overflow-hidden bg-[#dbeaf3] lg:order-2 lg:min-h-[820px]"
-                        >
+                        <div className="group relative order-1 min-h-[650px] overflow-hidden bg-[#dbeaf3] lg:order-2 lg:min-h-[820px]">
+                            <Link
+                                href={jerseyAzul.enlace}
+                                aria-label="Ver Jersey Azul"
+                                className="absolute inset-0 z-10"
+                            />
                             <Image
                                 src={jerseyAzul.imagen}
                                 alt="Uniforme local azul de Génesis FC"
@@ -519,12 +544,22 @@ export default async function TiendaPage() {
 
                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#071d49]/30 to-transparent" />
 
-                            <div className="absolute right-5 top-5 bg-white px-4 py-3 sm:right-7 sm:top-7">
+                            <div className="absolute z-20 right-5 top-5 bg-white px-4 py-3 sm:right-7 sm:top-7">
                                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#0b1f43]">
                                     Home Kit
                                 </p>
                             </div>
-                        </Link>
+
+                            <div className="absolute left-5 top-5 sm:left-7 sm:top-7 z-30">
+                                <FavoriteButton
+                                    productoId={jerseyAzul.id}
+                                    nombre="Jersey Azul"
+                                    enlace={jerseyAzul.enlace}
+                                    imagen={jerseyAzul.imagen}
+                                    precioTexto={jerseyAzul.precioTexto}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -536,10 +571,12 @@ export default async function TiendaPage() {
             <section className="bg-[#f7f7f5] px-5 pb-20 sm:px-8 lg:px-10 lg:pb-28">
                 <div className="mx-auto max-w-[1600px]">
                     <div className="grid overflow-hidden bg-white lg:grid-cols-[1.18fr_0.82fr]">
-                        <Link
-                            href={jerseyVisitante.enlace}
-                            className="group relative min-h-[650px] overflow-hidden bg-[#edf2f5] lg:min-h-[820px]"
-                        >
+                        <div className="group relative min-h-[650px] overflow-hidden bg-[#edf2f5] lg:min-h-[820px]">
+                            <Link
+                                href={jerseyVisitante.enlace}
+                                aria-label="Ver Jersey Visitante"
+                                className="absolute inset-0 z-10"
+                            />
                             <Image
                                 src={jerseyVisitante.imagen}
                                 alt="Modelo usando el uniforme visitante de Génesis FC"
@@ -550,12 +587,22 @@ export default async function TiendaPage() {
 
                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#071d49]/25 to-transparent" />
 
-                            <div className="absolute left-5 top-5 bg-white px-4 py-3 sm:left-7 sm:top-7">
+                            <div className="absolute z-20 left-5 top-5 bg-white px-4 py-3 sm:left-7 sm:top-7">
                                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#0b1f43]">
                                     Away Kit
                                 </p>
                             </div>
-                        </Link>
+
+                            <div className="absolute right-5 top-5 sm:right-7 sm:top-7 z-30">
+                                <FavoriteButton
+                                    productoId={jerseyVisitante.id}
+                                    nombre="Jersey Visitante"
+                                    enlace={jerseyVisitante.enlace}
+                                    imagen={jerseyVisitante.imagen}
+                                    precioTexto={jerseyVisitante.precioTexto}
+                                />
+                            </div>
+                        </div>
 
                         <div className="flex flex-col justify-between px-7 py-10 sm:px-10 sm:py-12 lg:px-12 lg:py-14 xl:px-16">
                             <div>
