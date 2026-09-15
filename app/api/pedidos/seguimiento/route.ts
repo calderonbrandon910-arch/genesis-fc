@@ -364,7 +364,9 @@ export async function GET(
                     punto_retiro,
                     total,
                     moneda,
-                    creado_en
+                    creado_en,
+                    fecha_estimada_desde,
+                    fecha_estimada_hasta
                     `
                 )
                 .eq(
@@ -451,6 +453,12 @@ export async function GET(
 
                     creadoEn:
                         pedido.creado_en,
+
+                    fechaEstimadaDesde:
+                        pedido.fecha_estimada_desde,
+
+                    fechaEstimadaHasta:
+                        pedido.fecha_estimada_hasta,
                 },
             },
             200,

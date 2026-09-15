@@ -1501,6 +1501,89 @@ export async function POST(
                 error
             );
 
+            const mensajeSupabase =
+                typeof error.message ===
+                "string"
+                    ? error.message
+                    : "";
+
+            const coincidenciaStock =
+                mensajeSupabase.match(
+                    /Stock insuficiente para el producto (.+?) talla (.+?)\. Disponible: (\d+), solicitado: (\d+)/i
+                );
+
+            if (coincidenciaStock) {
+                const productoId =
+                    coincidenciaStock[1]
+                        ?.trim() ??
+                    "";
+
+                const talla =
+                    coincidenciaStock[2]
+                        ?.trim() ??
+                    "";
+
+                const disponible =
+                    Number(
+                        coincidenciaStock[3]
+                    );
+
+                const solicitado =
+                    Number(
+                        coincidenciaStock[4]
+                    );
+
+                const nombreProducto =
+                    PRODUCTOS[productoId]
+                        ?.nombre ??
+                    "el producto seleccionado";
+
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        codigo:
+                            "STOCK_INSUFICIENTE",
+
+                        error:
+                            disponible === 1
+                                ? `Solo queda 1 unidad disponible de ${nombreProducto}, talla ${talla}. Reduce la cantidad e inténtalo nuevamente.`
+                                : `Solo quedan ${disponible} unidades disponibles de ${nombreProducto}, talla ${talla}. Reduce la cantidad e inténtalo nuevamente.`,
+
+                        stock: {
+                            productoId,
+                            talla,
+                            disponible,
+                            solicitado,
+                        },
+                    },
+                    {
+                        status: 409,
+                    }
+                );
+            }
+
+            if (
+                mensajeSupabase.includes(
+                    "No existe inventario para el producto"
+                )
+            ) {
+                return NextResponse.json(
+                    {
+                        ok: false,
+
+                        codigo:
+                            "INVENTARIO_NO_DISPONIBLE",
+
+                        error:
+                            "Una de las combinaciones de producto y talla seleccionadas no está disponible. Revisa tu carrito e inténtalo nuevamente.",
+                    },
+                    {
+                        status: 409,
+                    }
+                );
+            }
+
             return NextResponse.json(
                 {
                     ok: false,

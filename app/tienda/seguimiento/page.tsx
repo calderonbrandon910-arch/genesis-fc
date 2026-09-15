@@ -21,6 +21,8 @@ type PedidoSeguimiento = {
     total: number;
     moneda: string;
     creadoEn: string;
+    fechaEstimadaDesde?: string | null;
+    fechaEstimadaHasta?: string | null;
 };
 
 type RespuestaSeguimiento = {
@@ -173,6 +175,48 @@ export default function SeguimientoPedidoPage() {
         } catch {
             return fecha;
         }
+    }
+
+    function formatearFechaEstimada(
+        fecha: string
+    ) {
+        try {
+            return new Intl.DateTimeFormat(
+                "es-HN",
+                {
+                    day: "numeric",
+                    month: "long",
+                }
+            ).format(
+                new Date(`${fecha}T12:00:00`)
+            );
+        } catch {
+            return fecha;
+        }
+    }
+
+    function textoEstimacion(
+        pedidoActual: PedidoSeguimiento
+    ) {
+        if (
+            pedidoActual.metodoEntrega ===
+            "recoger"
+        ) {
+            return "Puedes recoger tu producto hoy mismo";
+        }
+
+        if (
+            pedidoActual.fechaEstimadaDesde &&
+            pedidoActual.fechaEstimadaHasta
+        ) {
+            return `Entrega estimada: ${formatearFechaEstimada(
+                pedidoActual.fechaEstimadaDesde
+            )} – ${formatearFechaEstimada(
+                pedidoActual.fechaEstimadaHasta
+            )}`;
+        }
+
+        return "Fecha estimada pendiente de confirmación";
     }
 
     function textoEstado(
@@ -489,6 +533,26 @@ export default function SeguimientoPedidoPage() {
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* ESTIMACIÓN DE ENTREGA */}
+                            <div className="mt-6 border border-[#158bd2]/20 bg-[#edf8ff] p-6 sm:p-8">
+                                <p className="text-[8px] font-black uppercase tracking-[0.24em] text-[#158bd2]">
+                                    Tiempo estimado
+                                </p>
+
+                                <p className="mt-3 text-lg font-black text-[#0b1f43] sm:text-xl">
+                                    {textoEstimacion(
+                                        pedido
+                                    )}
+                                </p>
+
+                                {pedido.metodoEntrega ===
+                                    "envio" && (
+                                    <p className="mt-3 max-w-2xl text-xs leading-6 text-[#0b1f43]/50">
+                                        Esta estimación corresponde al rango guardado cuando se creó tu pedido.
+                                    </p>
+                                )}
                             </div>
 
                             {/* INFORMACIÓN */}

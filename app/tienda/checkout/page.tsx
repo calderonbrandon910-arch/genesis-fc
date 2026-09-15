@@ -63,6 +63,26 @@ declare global {
 const GOOGLE_MAPS_SCRIPT_ID =
     "genesis-fc-google-maps";
 
+function sumarDiasHabiles(fechaInicial: Date, dias: number) {
+    const fecha = new Date(fechaInicial.getFullYear(), fechaInicial.getMonth(), fechaInicial.getDate());
+    let agregados = 0;
+
+    while (agregados < dias) {
+        fecha.setDate(fecha.getDate() + 1);
+        const dia = fecha.getDay();
+        if (dia !== 0 && dia !== 6) agregados += 1;
+    }
+
+    return fecha;
+}
+
+function formatearFechaEntrega(fecha: Date) {
+    return new Intl.DateTimeFormat("es-HN", {
+        day: "numeric",
+        month: "long",
+    }).format(fecha);
+}
+
 function esperarGooglePlaces(
     timeoutMs = 8000
 ): Promise<void> {
@@ -269,6 +289,31 @@ export default function CheckoutPage() {
     const totalFinal =
         totalPrice +
         (costoEnvioVisual ?? 0);
+
+    const tienePersonalizacion = items.some(
+        (item) =>
+            Boolean(item.nombrePersonalizado?.trim()) ||
+            Boolean(item.numeroPersonalizado?.trim())
+    );
+
+    const hoy = new Date();
+
+    const fechaEstimadaDesde =
+        metodoEntrega === "envio"
+            ? sumarDiasHabiles(hoy, tienePersonalizacion ? 3 : 2)
+            : hoy;
+
+    const fechaEstimadaHasta =
+        metodoEntrega === "envio"
+            ? sumarDiasHabiles(hoy, tienePersonalizacion ? 6 : 4)
+            : hoy;
+
+    const textoEstimacionEntrega =
+        metodoEntrega === "recoger"
+            ? "Puedes recoger tu producto hoy mismo"
+            : `Entrega estimada: ${formatearFechaEntrega(
+                  fechaEstimadaDesde
+              )} – ${formatearFechaEntrega(fechaEstimadaHasta)}`;
 
     /* =====================================================
        CARGAR DATOS GUARDADOS
@@ -971,6 +1016,25 @@ export default function CheckoutPage() {
                                                 </div>
                                             )}
 
+                                            <div className="grid gap-3 py-5 sm:grid-cols-[160px_1fr]">
+                                                <span className="text-[8px] font-black uppercase tracking-[0.22em] text-[#0b1f43]/35">
+                                                    Estimación
+                                                </span>
+
+                                                <div>
+                                                    <span className="text-sm font-black text-[#158bd2]">
+                                                        {textoEstimacionEntrega}
+                                                    </span>
+
+                                                    {metodoEntrega === "envio" &&
+                                                        tienePersonalizacion && (
+                                                            <p className="mt-2 text-xs leading-5 text-[#0b1f43]/45">
+                                                                El rango incluye el tiempo de preparación de la personalización.
+                                                            </p>
+                                                        )}
+                                                </div>
+                                            </div>
+
                                             {notas.trim() !==
                                                 "" && (
                                                 <div className="grid gap-3 py-5 sm:grid-cols-[160px_1fr]">
@@ -1291,6 +1355,23 @@ export default function CheckoutPage() {
                                                     Recoger
                                                 </p>
                                             </button>
+                                        </div>
+
+                                        <div className="mt-5 border border-[#158bd2]/20 bg-[#edf8ff] p-5">
+                                            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#158bd2]">
+                                                Tiempo estimado
+                                            </p>
+
+                                            <p className="mt-2 text-sm font-black text-[#0b1f43]">
+                                                {textoEstimacionEntrega}
+                                            </p>
+
+                                            {metodoEntrega === "envio" &&
+                                                tienePersonalizacion && (
+                                                    <p className="mt-2 text-xs leading-5 text-[#0b1f43]/50">
+                                                        Tu pedido incluye personalización, por lo que requiere tiempo adicional de preparación.
+                                                    </p>
+                                                )}
                                         </div>
 
                                         <div className="mt-8 grid gap-6">
