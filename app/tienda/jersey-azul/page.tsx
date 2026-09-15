@@ -30,6 +30,11 @@ export default function JerseyAzulPage() {
     const [stockPorTalla, setStockPorTalla] = useState<Record<string, number>>({});
     const [cargandoStock, setCargandoStock] = useState(true);
     const [errorStock, setErrorStock] = useState("");
+    const [tallaAviso, setTallaAviso] = useState("");
+    const [correoAviso, setCorreoAviso] = useState("");
+    const [enviandoAviso, setEnviandoAviso] = useState(false);
+    const [mensajeAviso, setMensajeAviso] = useState("");
+    const [errorAviso, setErrorAviso] = useState("");
 
     const { addItem, totalItems } = useCart();
 
@@ -128,6 +133,10 @@ export default function JerseyAzulPage() {
         const stockTalla = stockPorTalla[talla] ?? 0;
 
         if (!cargandoStock && stockTalla <= 0) {
+            setTallaAviso(talla);
+            setCorreoAviso("");
+            setMensajeAviso("");
+            setErrorAviso("");
             return;
         }
 
@@ -149,6 +158,62 @@ export default function JerseyAzulPage() {
         setCantidad((cantidadActual) =>
             Math.max(cantidadActual - 1, 1)
         );
+    };
+
+    const registrarAvisoReposicion = async () => {
+        const correo = correoAviso.trim().toLowerCase();
+
+        if (!tallaAviso || !correo) {
+            setErrorAviso("Ingresa un correo válido.");
+            return;
+        }
+
+        try {
+            setEnviandoAviso(true);
+            setErrorAviso("");
+            setMensajeAviso("");
+
+            const respuesta = await fetch("/api/tienda/reposicion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    productoId: "jersey-azul",
+                    talla: tallaAviso,
+                    correo,
+                }),
+            });
+
+            const resultado = (await respuesta.json()) as {
+                ok: boolean;
+                error?: string;
+                mensaje?: string;
+                yaRegistrado?: boolean;
+            };
+
+            if (!respuesta.ok || !resultado.ok) {
+                setErrorAviso(
+                    resultado.error ||
+                        "No pudimos registrar el aviso en este momento."
+                );
+                return;
+            }
+
+            setMensajeAviso(
+                resultado.yaRegistrado
+                    ? "Este correo ya está registrado para esta talla."
+                    : resultado.mensaje ||
+                          "Listo. Te avisaremos cuando esta talla vuelva."
+            );
+        } catch (error) {
+            console.error("Error registrando aviso de reposición:", error);
+            setErrorAviso(
+                "No pudimos registrar el aviso en este momento."
+            );
+        } finally {
+            setEnviandoAviso(false);
+        }
     };
 
     const agregarAlCarrito = () => {
@@ -368,15 +433,14 @@ export default function JerseyAzulPage() {
                                                     type="button"
                                                     disabled={
                                                         cargandoStock ||
-                                                        Boolean(errorStock) ||
-                                                        agotada
+                                                        Boolean(errorStock)
                                                     }
                                                     onClick={() =>
                                                         seleccionarTalla(talla)
                                                     }
                                                     className={`relative flex h-12 items-center justify-center border text-[10px] font-black uppercase transition duration-200 ${
                                                         agotada
-                                                            ? "cursor-not-allowed border-[#0b1f43]/10 bg-[#f3f3f0] text-[#0b1f43]/25 line-through"
+                                                            ? "cursor-pointer border-[#0b1f43]/10 bg-[#f3f3f0] text-[#0b1f43]/25 line-through hover:border-[#158bd2] hover:text-[#158bd2]"
                                                             : activa
                                                               ? "border-[#0b1f43] bg-[#0b1f43] text-white"
                                                               : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
@@ -419,6 +483,77 @@ export default function JerseyAzulPage() {
                                             </p>
                                         )}
                                     </div>
+
+                                    {tallaAviso ? (
+                                        <div className="mt-5 border border-[#158bd2]/20 bg-[#edf8ff] p-5">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#158bd2]">
+                                                        Talla {tallaAviso} agotada
+                                                    </p>
+                                                    <p className="mt-2 text-xs leading-5 text-[#0b1f43]/50">
+                                                        Déjanos tu correo y te avisaremos cuando vuelva a estar disponible.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setTallaAviso("");
+                                                        setCorreoAviso("");
+                                                        setMensajeAviso("");
+                                                        setErrorAviso("");
+                                                    }}
+                                                    className="text-sm font-black text-[#0b1f43]/35 transition hover:text-[#0b1f43]"
+                                                    aria-label="Cerrar aviso de reposición"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+
+                                            <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
+                                                <input
+                                                    type="email"
+                                                    value={correoAviso}
+                                                    onChange={(event) =>
+                                                        setCorreoAviso(event.target.value)
+                                                    }
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === "Enter") {
+                                                            event.preventDefault();
+                                                            void registrarAvisoReposicion();
+                                                        }
+                                                    }}
+                                                    placeholder="tu@correo.com"
+                                                    autoComplete="email"
+                                                    className="h-12 w-full border border-[#0b1f43]/15 bg-white px-4 text-sm font-bold outline-none transition placeholder:text-[#0b1f43]/25 focus:border-[#158bd2]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        void registrarAvisoReposicion()
+                                                    }
+                                                    disabled={enviandoAviso}
+                                                    className="h-12 bg-[#0b1f43] px-5 text-[8px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-[#158bd2] disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {enviandoAviso
+                                                        ? "Registrando..."
+                                                        : "Avísame cuando vuelva"}
+                                                </button>
+                                            </div>
+
+                                            {mensajeAviso ? (
+                                                <p className="mt-3 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                                                    {mensajeAviso}
+                                                </p>
+                                            ) : null}
+
+                                            {errorAviso ? (
+                                                <p className="mt-3 text-[8px] font-black uppercase tracking-[0.14em] text-red-600">
+                                                    {errorAviso}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
                                 </div>
 
                                 {/* PERSONALIZACIÓN */}

@@ -32,6 +32,11 @@ export default function JerseyBlancoPage() {
     const [stockPorTalla, setStockPorTalla] = useState<Record<string, number>>({});
     const [cargandoStock, setCargandoStock] = useState(true);
     const [errorStock, setErrorStock] = useState("");
+    const [tallaAviso, setTallaAviso] = useState<Talla | null>(null);
+    const [correoAviso, setCorreoAviso] = useState("");
+    const [enviandoAviso, setEnviandoAviso] = useState(false);
+    const [mensajeAviso, setMensajeAviso] = useState("");
+    const [errorAviso, setErrorAviso] = useState("");
 
     const { addItem, totalItems } = useCart();
 
@@ -134,12 +139,82 @@ export default function JerseyBlancoPage() {
         const stockTalla = stockPorTalla[talla] ?? 0;
 
         if (!cargandoStock && stockTalla <= 0) {
+            setTallaAviso(talla);
+            setCorreoAviso("");
+            setMensajeAviso("");
+            setErrorAviso("");
             return;
         }
 
+        setTallaAviso(null);
+        setCorreoAviso("");
+        setMensajeAviso("");
+        setErrorAviso("");
         setTallaSeleccionada(talla);
         setCantidad(1);
         setAgregado(false);
+    };
+
+    const registrarAvisoReposicion = async () => {
+        if (!tallaAviso || enviandoAviso) {
+            return;
+        }
+
+        const correoLimpio = correoAviso.trim().toLowerCase();
+
+        if (!correoLimpio) {
+            setErrorAviso("Ingresa tu correo electrónico.");
+            setMensajeAviso("");
+            return;
+        }
+
+        try {
+            setEnviandoAviso(true);
+            setErrorAviso("");
+            setMensajeAviso("");
+
+            const respuesta = await fetch("/api/tienda/reposicion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    productoId: "jersey-blanco",
+                    talla: tallaAviso,
+                    correo: correoLimpio,
+                }),
+            });
+
+            const data = (await respuesta.json()) as {
+                ok?: boolean;
+                yaRegistrado?: boolean;
+                mensaje?: string;
+                error?: string;
+            };
+
+            if (!respuesta.ok || !data.ok) {
+                throw new Error(
+                    data.error || "No se pudo registrar el aviso de reposición."
+                );
+            }
+
+            setMensajeAviso(
+                data.yaRegistrado
+                    ? "Ya tienes un aviso activo para esta talla."
+                    : data.mensaje ||
+                          "Listo. Te avisaremos cuando esta talla vuelva."
+            );
+            setErrorAviso("");
+        } catch (error) {
+            setMensajeAviso("");
+            setErrorAviso(
+                error instanceof Error
+                    ? error.message
+                    : "No se pudo registrar el aviso de reposición."
+            );
+        } finally {
+            setEnviandoAviso(false);
+        }
     };
 
     const aumentarCantidad = () => {
@@ -384,12 +459,11 @@ export default function JerseyBlancoPage() {
                                                     }
                                                     disabled={
                                                         cargandoStock ||
-                                                        agotada ||
                                                         Boolean(errorStock)
                                                     }
                                                     className={`flex h-12 items-center justify-center border text-[10px] font-black uppercase transition duration-200 ${
                                                         agotada
-                                                            ? "cursor-not-allowed border-[#0b1f43]/10 bg-[#f3f3f0] text-[#0b1f43]/20 line-through"
+                                                            ? "cursor-pointer border-[#0b1f43]/10 bg-[#f3f3f0] text-[#0b1f43]/30 line-through hover:border-[#158bd2]/40 hover:text-[#158bd2]"
                                                             : activa
                                                               ? "border-[#0b1f43] bg-[#0b1f43] text-white"
                                                               : "border-[#0b1f43]/15 bg-white text-[#0b1f43] hover:border-[#0b1f43]"
@@ -432,6 +506,88 @@ export default function JerseyBlancoPage() {
                                             </p>
                                         )}
                                     </div>
+
+                                    {tallaAviso && (
+                                        <div className="mt-5 border border-[#158bd2]/20 bg-[#edf8ff] p-5 sm:p-6">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <p className="text-[8px] font-black uppercase tracking-[0.22em] text-[#158bd2]">
+                                                        Avísame cuando vuelva
+                                                    </p>
+
+                                                    <p className="mt-2 text-xs leading-5 text-[#0b1f43]/55">
+                                                        El Jersey Blanco talla{" "}
+                                                        <strong>{tallaAviso}</strong> está
+                                                        agotado. Déjanos tu correo y te
+                                                        avisaremos cuando vuelva a estar
+                                                        disponible.
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setTallaAviso(null);
+                                                        setCorreoAviso("");
+                                                        setMensajeAviso("");
+                                                        setErrorAviso("");
+                                                    }}
+                                                    className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#0b1f43]/10 bg-white text-sm font-black text-[#0b1f43]/45 transition hover:border-[#0b1f43] hover:text-[#0b1f43]"
+                                                    aria-label="Cerrar aviso de reposición"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+
+                                            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                                                <input
+                                                    type="email"
+                                                    inputMode="email"
+                                                    autoComplete="email"
+                                                    value={correoAviso}
+                                                    onChange={(event) => {
+                                                        setCorreoAviso(event.target.value);
+                                                        setErrorAviso("");
+                                                        setMensajeAviso("");
+                                                    }}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === "Enter") {
+                                                            event.preventDefault();
+                                                            void registrarAvisoReposicion();
+                                                        }
+                                                    }}
+                                                    placeholder="tu@correo.com"
+                                                    disabled={enviandoAviso}
+                                                    className="h-12 min-w-0 flex-1 border border-[#0b1f43]/15 bg-white px-4 text-sm outline-none transition placeholder:text-[#0b1f43]/25 focus:border-[#158bd2] disabled:cursor-not-allowed disabled:opacity-60"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        void registrarAvisoReposicion()
+                                                    }
+                                                    disabled={enviandoAviso}
+                                                    className="h-12 bg-[#0b1f43] px-5 text-[8px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-[#158bd2] disabled:cursor-not-allowed disabled:opacity-60"
+                                                >
+                                                    {enviandoAviso
+                                                        ? "Registrando..."
+                                                        : "Avísame cuando vuelva"}
+                                                </button>
+                                            </div>
+
+                                            {mensajeAviso && (
+                                                <p className="mt-3 text-[8px] font-black uppercase leading-5 tracking-[0.14em] text-[#158bd2]">
+                                                    {mensajeAviso}
+                                                </p>
+                                            )}
+
+                                            {errorAviso && (
+                                                <p className="mt-3 text-[8px] font-black uppercase leading-5 tracking-[0.14em] text-red-600">
+                                                    {errorAviso}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* PERSONALIZACIÓN */}
