@@ -2112,7 +2112,7 @@ export default function Home() {
                 numero: "01",
                 titulo: "Génesis TV",
                 texto: "Contenido audiovisual, historias y producción oficial del club.",
-                etiqueta: "En desarrollo",
+                etiqueta: "Ya disponible",
               },
               {
                 numero: "02",
@@ -2141,6 +2141,14 @@ export default function Home() {
                     : "border-black/[0.06] bg-[#f4f3ef]"
                 }`}
               >
+                {index === 0 && (
+                  <Link
+                    href="/genesis-tv"
+                    aria-label="Abrir Génesis TV"
+                    className="absolute inset-0 z-20"
+                  />
+                )}
+
                 <div
                   aria-hidden="true"
                   className={`absolute -right-10 -top-12 h-40 w-40 rounded-full blur-3xl ${
