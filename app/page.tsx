@@ -2106,96 +2106,63 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              {
-                numero: "01",
-                titulo: "Génesis TV",
-                texto: "Contenido audiovisual, historias y producción oficial del club.",
-                etiqueta: "Ya disponible",
-              },
-              {
-                numero: "02",
-                titulo: "Fan Zone",
-                texto: "Un nuevo espacio digital pensado para vivir Génesis como aficionado.",
-                etiqueta: "En desarrollo",
-              },
-              {
-                numero: "03",
-                titulo: "Academia",
-                texto: "El futuro del club y su desarrollo deportivo tendrán su propio espacio.",
-                etiqueta: "En desarrollo",
-              },
-              {
-                numero: "04",
-                titulo: "Beneficios",
-                texto: "Experiencias y ventajas para acercar todavía más al aficionado con Génesis FC.",
-                etiqueta: "En desarrollo",
-              },
-            ].map((item, index) => (
-              <article
-                key={item.titulo}
-                className={`group relative min-h-[300px] overflow-hidden rounded-[28px] border p-6 sm:min-h-[340px] sm:p-7 ${
-                  index === 0
-                    ? "border-[#168cab]/20 bg-[#06142d] text-white"
-                    : "border-black/[0.06] bg-[#f4f3ef]"
-                }`}
-              >
-                {index === 0 && (
-                  <Link
-                    href="/genesis-tv"
-                    aria-label="Abrir Génesis TV"
-                    className="absolute inset-0 z-20"
-                  />
-                )}
+          <div className="mt-8">
+            <Link
+              href="/genesis-tv"
+              aria-label="Abrir Génesis TV"
+              className="group relative block min-h-[420px] overflow-hidden rounded-[30px] border border-[#168cab]/20 bg-[#06142d] text-white transition duration-500 hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(6,20,45,0.18)] sm:min-h-[520px] lg:min-h-[600px]"
+            >
+              <Image
+                src="/mira-genesis-tv.png"
+                alt="Génesis TV"
+                fill
+                quality={100}
+                sizes="100vw"
+                className="object-cover object-center transition duration-700 group-hover:scale-[1.025]"
+              />
 
-                <div
-                  aria-hidden="true"
-                  className={`absolute -right-10 -top-12 h-40 w-40 rounded-full blur-3xl ${
-                    index === 0 ? "bg-[#168cab]/25" : "bg-[#168cab]/10"
-                  }`}
-                />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-r from-[#020817]/95 via-[#020817]/72 to-[#020817]/20"
+              />
 
-                <div className="relative flex h-full flex-col justify-between">
-                  <div className="flex items-start justify-between gap-4">
-                    <p
-                      className={`text-[7px] font-black uppercase tracking-[0.22em] ${
-                        index === 0 ? "text-cyan-300" : "text-[#168cab]"
-                      }`}
-                    >
-                      {item.numero}
-                    </p>
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-[#020817]/85 via-transparent to-[#020817]/15"
+              />
 
-                    <span
-                      className={`rounded-full border px-3 py-2 text-[6px] font-black uppercase tracking-[0.14em] ${
-                        index === 0
-                          ? "border-white/10 bg-white/[0.05] text-white/50"
-                          : "border-black/[0.06] bg-white/60 text-black/35"
-                      }`}
-                    >
-                      {item.etiqueta}
-                    </span>
-                  </div>
+              <div className="relative z-10 flex min-h-[420px] flex-col justify-between p-7 sm:min-h-[520px] sm:p-10 lg:min-h-[600px] lg:p-12">
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-[7px] font-black uppercase tracking-[0.22em] text-cyan-300">
+                    01 · Contenido oficial
+                  </p>
 
-                  <div className="mt-16">
-                    <h3 className="text-3xl font-black uppercase leading-[0.9] tracking-[-0.045em] sm:text-[2.25rem]">
-                      {item.titulo}
-                      <span className={index === 0 ? "text-cyan-300" : "text-[#168cab]"}>
-                        .
-                      </span>
-                    </h3>
+                  <span className="rounded-full border border-cyan-300/20 bg-[#020817]/45 px-4 py-2 text-[6px] font-black uppercase tracking-[0.14em] text-cyan-300 backdrop-blur-xl">
+                    Ya disponible
+                  </span>
+                </div>
 
-                    <p
-                      className={`mt-5 text-[10px] leading-5 sm:text-xs sm:leading-6 ${
-                        index === 0 ? "text-white/45" : "text-black/42"
-                      }`}
-                    >
-                      {item.texto}
-                    </p>
+                <div className="max-w-[720px]">
+                  <p className="text-[7px] font-black uppercase tracking-[0.24em] text-cyan-300">
+                    El canal del club
+                  </p>
+
+                  <h3 className="mt-4 text-[3.5rem] font-black uppercase leading-[0.82] tracking-[-0.06em] sm:text-[5.5rem] lg:text-[7rem]">
+                    Génesis TV
+                    <span className="text-cyan-300">.</span>
+                  </h3>
+
+                  <p className="mt-6 max-w-[590px] text-[11px] leading-6 text-white/60 sm:text-sm sm:leading-7">
+                    Entrevistas, historias y contenido audiovisual oficial para vivir Génesis FC más cerca que nunca.
+                  </p>
+
+                  <div className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-6 py-4 text-[7px] font-black uppercase tracking-[0.17em] text-[#06142d] transition group-hover:bg-cyan-300">
+                    Entrar a Génesis TV
+                    <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
                   </div>
                 </div>
-              </article>
-            ))}
+              </div>
+            </Link>
           </div>
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
